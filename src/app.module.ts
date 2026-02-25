@@ -3,6 +3,11 @@ import {AppController} from './app.controller';
 import {AppService} from './app.service';
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {ConfigModule} from "@nestjs/config";
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { GroupModule } from './group/group.module';
+import { MovieModule } from './movie/movie.module';
+import { RecommendationModule } from './recommendation/recommendation.module';
 
 @Module({
     imports: [
@@ -18,6 +23,11 @@ import {ConfigModule} from "@nestjs/config";
             autoLoadEntities: true,
             synchronize: true,
         }),
+        UserModule,
+        AuthModule,
+        GroupModule,
+        MovieModule,
+        RecommendationModule,
 
 
     ],
