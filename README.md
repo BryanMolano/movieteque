@@ -2,7 +2,7 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-# mobieteque API RESTful
+# Movieteque API RESTful
 
 1. clonar proyecto
 2. ```
@@ -17,10 +17,6 @@
 docker-compose up -d
 ```
 
-6. ejecutar SEED
+6. este proyecto actualmente no cuenta con seed 
 
-```
-http://localhost:3000/api/seed
-```
-
-7. levantar: ```npm run start:dev
+7. levantar: ```npm run start:dev```
