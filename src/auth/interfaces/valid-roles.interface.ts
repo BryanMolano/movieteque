@@ -1,1 +1,5 @@
-export interface ValidRoles {}
+export enum ValidRoles {
+  admin = 'admin',
+  superUser = 'user',
+  user = 'spectator'
+}
