@@ -1,34 +1,69 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 
 @Controller('auth')
-export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+export class AuthController 
+{
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  constructor(private readonly authService: AuthService)
+  {
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
+  @Post('register')
+  create(@Body() createUserDto: CreateUserDto)
+  {
+    return this.authService.create(createUserDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
+  @Post('login')
+  loginUser(@Body() loginUserDto: LoginUserDto)
+  {
+    return this.authService.login(loginUserDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
+  @Get('check-status')
+  @Auth()
+  checkAuthStatus(
+    @GetUser() user: User,
+  )
+  {
+    return this.authService.checkAuthStatus(user);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
+  @Get('private')
+  @UseGuards(AuthGuard())
+  testingPrivateRoute(
+    @Req() request: Express.Request,
+    @GetUser() user: User,
+    @GetUser('email') userEmail: string,
+    @RawHeaders() rawHeaders: string[],
+  )
+  {
+    console.log(request);
+    return {
+      ok: true,
+      message: 'ola mundo priavte',
+      user,
+      userEmail,
+      rawHeaders,
+    };
+  }
+
+
+  // @SetMetadata('roles', ['admin', 'super-user'])
+
+ }
+
+
+  @Get('private3')
+  @Auth(ValidRoles.admin)
+  privateRout3(
+    @GetUser() user: User,
+  )
+  {
+    return {
+      ok: true,
+      user,
+    };
   }
 }

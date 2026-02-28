@@ -1,32 +1,33 @@
-import {Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
-import {Movie} from "../../movie/entities/movie.entity";
-import {User} from "../../user/entities/user.entity";
-import {Group} from "../../group/entities/group.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Movie } from "../../movie/entities/movie.entity";
+import { User } from "../../user/entities/user.entity";
+import { Group } from "../../group/entities/group.entity";
 
 @Entity('recommendations')
-export class Recommendation
+export class Recommendation 
 {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @Column({
-        type: 'int',
-        nullable: false,
-    })
-    priority: number;
 
-    @ManyToOne(() => Movie)
-    @JoinColumn({name: 'movie_id'})
-    movie: Movie;
+  @Column({
+    type: 'int',
+    nullable: false,
+  })
+  priority: number;
 
-    @ManyToOne(() => User)
-    @JoinColumn({name: 'user_id'})
-    user: User;
+  @ManyToOne(() => Movie)
+  @JoinColumn({ name: 'movie_id' })
+  movie: Movie;
 
-    @ManyToOne(() => Group)
-    @JoinColumn({name: 'group_id'})
-    group: Group;
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @ManyToOne(() => Group)
+  @JoinColumn({ name: 'group_id' })
+  group: Group;
 }

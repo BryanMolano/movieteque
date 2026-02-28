@@ -1,9 +1,7 @@
-﻿import {IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Max, Min} from "class-validator";
-import {InteractionState} from "../entities/interaction.entity";
+﻿import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Max, Min } from "class-validator";
+import { InteractionState } from "../entities/interaction.entity";
 
-export class CreateInteractionDto
-{
-
+export class CreateInteractionDto {
     @IsString()
     @IsNotEmpty()
     @IsOptional()
@@ -19,6 +17,11 @@ export class CreateInteractionDto
     @IsUUID()
     @IsNotEmpty()
     memberId: string;
+
+
+  @Whosinabunker
+  @Iveseentomuch
+  lol: Wasa;
 
     @IsUUID()
     @IsNotEmpty()

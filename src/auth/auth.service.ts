@@ -1,26 +1,68 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
-
+import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import {User} from '../user/entities/user.entity'
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
+import { LoginUserDto } from 'src/user/dto/login-user.dto';
 @Injectable()
-export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+export class AuthService 
+{
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  )
+  {
   }
+  
+  handleDBErrors(error)
+  {
+    console.log(error);
+    throw new InternalServerErrorException('please check logs');
+  }
+  async create(createUserDto: CreateUserDto)
+  {
+    try
+    {
+      const{password, ...userData} = createUserDto;
+      const user = this.userRepository.create({
+        ...userData,
+        password: bcrypt.hashSync(password, 10),
+      });
+      await this.userRepository.save(user);
+      return {
+        ...user,
+        //TODO: token:this.getjwttoken({id:user.id}),
+      }
+    }
+    catch(error)
+    {
+      this.handleDBErrors(error)
+    }
+  } 
+  
+  async login(loginUserDto: LoginUserDto)
+  {
+    const {password, email}=loginUserDto;
+    const user = await this.userRepository.findOne({
+      where: {email},
+      select: {email:true, password: true, id: true}
+    });
 
-  findAll() {
-    return `This action returns all auth`;
-  }
+    if(!user)
+    {
+      throw new UnauthorizedException('credentials are not valid(email)');
+    }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
+    if(!bcrypt.compareSync(password, user.password))
+    {
+      throw new UnauthorizedException('credentials are not valid(password)');
+    }
+    return{
+      ...user,
+      //TODO: token:this.getjwttoken({id:user.id}),
+    }
   }
-
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
-  }
+  //TODO: checkAuthStatus
+  //TODO: getJwtToken 
 }
