@@ -1,7 +1,7 @@
+import { Group } from "src/group/entities/group.entity";
+import { Movie } from "src/movie/entities/movie.entity";
+import { User } from "src/user/entities/user.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Movie } from "../../movie/entities/movie.entity";
-import { User } from "../../user/entities/user.entity";
-import { Group } from "../../group/entities/group.entity";
 
 @Entity('recommendations')
 export class Recommendation 

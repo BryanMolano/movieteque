@@ -1,4 +1,4 @@
-﻿import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Max, Min } from "class-validator";
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Max, Min } from "class-validator";
 import { InteractionState } from "../entities/interaction.entity";
 
 export class CreateInteractionDto 

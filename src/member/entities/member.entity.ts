@@ -41,4 +41,13 @@ export class Member
     default: MemberRole.User,
   })
   role: MemberRole;
+
+  @Column({
+    type: 'bool',
+    default: false
+  })
+  isBanned: boolean;
+
+
+
 }

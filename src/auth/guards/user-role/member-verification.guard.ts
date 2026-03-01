@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
+// import { UserService } from 'src/user/user.service';
 import { RequestWithUser } from 'src/auth/interfaces/request-with-user.interface';
 import { User } from 'src/user/entities/user.entity';
 import { MemberService } from 'src/member/member.service';
@@ -9,7 +9,7 @@ import { Member } from 'src/member/entities/member.entity';
 export class MemberVerificationGuard implements CanActivate 
 {
   constructor(
-    private readonly userService: UserService,
+    // private readonly userService: UserService,
     private readonly memberService: MemberService,
   )
   {

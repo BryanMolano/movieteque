@@ -1,4 +1,4 @@
-﻿import {
+import {
   Column,
   Entity,
   Index,
@@ -7,8 +7,8 @@
   PrimaryGeneratedColumn,
   UpdateDateColumn
 } from "typeorm";
-import {Recommendation} from "./recommendation.entity";
 import { Member } from "src/member/entities/member.entity";
+import { Recommendation } from "src/recommendation/entities/recommendation.entity";
 
 export enum InteractionState
 {

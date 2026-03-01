@@ -9,6 +9,7 @@ import { GroupModule } from './group/group.module';
 import { MovieModule } from './movie/movie.module';
 import { RecommendationModule } from './recommendation/recommendation.module';
 import { MemberModule } from './member/member.module';
+import { InteractionModule } from './interaction/interaction.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { MemberModule } from './member/member.module';
     MovieModule,
     RecommendationModule,
     MemberModule,
+    InteractionModule,
 
 
   ],

@@ -11,7 +11,7 @@ import { Member } from './entities/member.entity';
   imports: [UserModule,
     TypeOrmModule.forFeature([Member])
   ],
-  exports:[TypeOrmModule]
+  exports:[TypeOrmModule, MemberService]
 })
 export class MemberModule 
 {}
