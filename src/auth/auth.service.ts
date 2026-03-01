@@ -5,12 +5,15 @@ import {User} from '../user/entities/user.entity'
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from 'src/user/dto/login-user.dto';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
 @Injectable()
 export class AuthService 
 {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
   )
   {
   }
@@ -20,6 +23,7 @@ export class AuthService
     console.log(error);
     throw new InternalServerErrorException('please check logs');
   }
+
   async create(createUserDto: CreateUserDto)
   {
     try
@@ -32,7 +36,7 @@ export class AuthService
       await this.userRepository.save(user);
       return {
         ...user,
-        //TODO: token:this.getjwttoken({id:user.id}),
+        token:this.getJwtToken({id:user.id}),
       }
     }
     catch(error)
@@ -60,9 +64,21 @@ export class AuthService
     }
     return{
       ...user,
-      //TODO: token:this.getjwttoken({id:user.id}),
+      token:this.getJwtToken({id:user.id}),
     }
   }
-  //TODO: checkAuthStatus
-  //TODO: getJwtToken 
+
+  checkAuthStatus(user:User)
+  {
+    return{
+      ...user,
+      token: this.getJwtToken({id: user.id})
+    }
+  }
+
+  getJwtToken(payload: JwtPayload)
+  {
+    const token = this.jwtService.sign(payload);
+    return token;
+  }
 }
