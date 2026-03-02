@@ -1,32 +1,84 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ILike,Not,Repository } from 'typeorm';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService 
 {
-  create(createUserDto: CreateUserDto) 
+  private readonly logger = new Logger('GroupService');
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>
+  )
   {
-    return 'This action adds a new user';
+    
   }
 
-  findAll() 
+  async findAll(term: string, user:User) 
   {
-    return `This action returns all user`;
+    try
+    {
+      const users = await this.userRepository.find({
+        where:{
+          
+          id: Not(user.id),
+          username:ILike(`%${term}%`),
+        },
+        take: 10
+      })
+      return users;
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error)
+    }
   }
 
-  findOne(id: number) 
+  async findOne(term: string, user: User) 
   {
-    return `This action returns a #${id} user`;
+    try
+    {
+      const users = await this.userRepository.findOne({
+        where:{
+          id: Not(user.id),
+          username:ILike(`%${term}%`)
+        },
+      })
+      return users;
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error)
+    }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) 
+  private handleDBExceptions(error) 
   {
-    return `This action updates a #${id} user`;
+    this.logger.error(error);
+    if(error instanceof ForbiddenException)
+    {
+      throw error
+    }
+    throw new InternalServerErrorException('Unexpected error occurred, check server logs');
+  }
+  async update(user:User, updateUserDto : UpdateUserDto) 
+  {
+    try
+    {
+    // const {description, imgUrl} = UpdateUserDto;
+      const updatedUser = await this.userRepository.preload({id: user.id, ...updateUserDto})
+      if(!updatedUser) throw new NotFoundException('user not found')
+      await this.userRepository.save(updatedUser);
+      return updatedUser; 
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error)
+    }
   }
 
-  remove(id: number) 
-  {
-    return `This action removes a #${id} user`;
-  }
+
+
 }
