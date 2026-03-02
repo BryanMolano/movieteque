@@ -12,6 +12,7 @@ import { JwtPayloadInvitationLink } from './interfaces/jwt-payload-invitation-li
 import { JwtService } from '@nestjs/jwt';
 import { JoinByLinkDto } from './dto/join-by-link.dto';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles.interface';
+import { BanMemberDto } from './dto/ban-member.dto';
 
 @Injectable()
 export class GroupService 
@@ -184,6 +185,29 @@ export class GroupService
       });
       await this.memberRepository.save(newMember);
       return newMember;
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error)
+    }
+  }
+
+  async banMember(groupId: string, banMemberDto: BanMemberDto, admin: User)
+  {
+    await this.findOne(groupId, admin);
+    try
+    {
+      const {id}=banMemberDto;
+      const memberToban= await this.memberRepository.findOne({
+        where:{
+          id
+        },
+        relations: ['user']
+      });
+      if(!memberToban) throw new NotFoundException('user not found')
+      if(memberToban.user.id === admin.id) throw new ForbiddenException('you cannot ban yourself')
+      memberToban.isBanned = true;
+      return memberToban;
     }
     catch(error)
     {

@@ -9,6 +9,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles.interface';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { JoinByLinkDto } from './dto/join-by-link.dto';
+import { BanMemberDto } from './dto/ban-member.dto';
 
 @Controller('group')
 export class GroupController 
@@ -69,8 +70,9 @@ export class GroupController
 
   @Post(':id/ban')
   @Auth(ValidRoles.Admin)
-  ban(@Body() createGroupDto: CreateGroupDto) 
+  ban(@Param('id', ParseUUIDPipe) groupId: string ,@Body() banMemberDto: BanMemberDto, @GetUser() user: User) 
   {
+    return this.groupService.banMember(groupId, banMemberDto, user);
   }
 
   @Get(':id/invitation-link')
