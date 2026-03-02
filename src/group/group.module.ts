@@ -5,9 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Group } from './entities/group.entity';
 import { MemberModule } from 'src/member/member.module';
 import { UserModule } from 'src/user/user.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [GroupController],
@@ -15,23 +13,8 @@ import { PassportModule } from '@nestjs/passport';
   imports: [TypeOrmModule.forFeature([Group]),
     MemberModule, 
     UserModule,
-    PassportModule.register({defaultStrategy: 'jwt'}),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) =>
-      {
-        return {
-          secret: configService.get('JWT_SECRET'),
-          signOptions: {
-            expiresIn: '2h',
-          },
-        };
-      },
-    }),
-
+    AuthModule,
   ],
-  exports:[TypeOrmModule, GroupService]
 })
 export class GroupModule 
 {}

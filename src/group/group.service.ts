@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { InjectRepository} from '@nestjs/typeorm';
@@ -6,10 +6,12 @@ import { Repository } from 'typeorm';
 import { Group } from './entities/group.entity';
 import { PaginationDto } from './dto/pagination.dto';
 import { User } from 'src/user/entities/user.entity';
-import { Member } from 'src/member/entities/member.entity';
+import { Member} from 'src/member/entities/member.entity';
 import { MemberService } from 'src/member/member.service';
 import { JwtPayloadInvitationLink } from './interfaces/jwt-payload-invitation-link/jwt-payload-invitation-link.interface';
 import { JwtService } from '@nestjs/jwt';
+import { JoinByLinkDto } from './dto/join-by-link.dto';
+import { ValidRoles } from 'src/auth/interfaces/valid-roles.interface';
 
 @Injectable()
 export class GroupService 
@@ -24,10 +26,9 @@ export class GroupService
     private readonly jwtService: JwtService,
   )
   {
-
   }
 
-  async create(createGroupDto: CreateGroupDto) 
+  async create(createGroupDto: CreateGroupDto, user: User) 
   {
     try
     {
@@ -35,6 +36,15 @@ export class GroupService
         ...createGroupDto
       })
       await this.groupRepository.save(group)
+
+      const member = this.memberRepository.create({
+        entryDate: new Date,
+        group,
+        user,
+        role:ValidRoles.Admin,
+      })
+      await this.memberRepository.save(member)
+
       return group;
     }
     catch(error)
@@ -118,6 +128,7 @@ export class GroupService
       this.handleDBExceptions(error)
     }
   }
+
   async update(id: string, updateGroupDto: UpdateGroupDto, user: User) 
   {
     await this.findOne(id, user); 
@@ -141,15 +152,42 @@ export class GroupService
     }
     throw new InternalServerErrorException('Unexpected error occurred, check server logs');
   }
+
   async getInvitationLink(id: string, user: User)
   {
-    const group = await this.findOne(id, user)
+    await this.findOne(id, user)
     const member = await this.memberService.verifyMember(user, id)
-    return this.getJwtToken({id:group!.id, username:user.username, nickname: member.nickname})
+    return this.getJwtToken({id:id, username:user.username, nickname: member.nickname})
   }
+
   getJwtToken(payload: JwtPayloadInvitationLink)
   {
-    const token = this.jwtService.sign(payload);
+    const token = this.jwtService.sign(payload,{
+      expiresIn: '1d',
+    });
     return token;
+  }
+
+  async joinByLink(joinByLinkDto : JoinByLinkDto, user: User)
+  {
+    try
+    {
+      const {jwt}=joinByLinkDto;
+      const payload:JwtPayloadInvitationLink = this.jwtService.verify(jwt);
+      const {id} = payload;
+      const group = await this.groupRepository.findOneBy({id});
+      if(!group) throw new NotFoundException('the group does not exist')
+      const newMember = this.memberRepository.create({
+        entryDate: new Date,
+        group,
+        user,
+      });
+      await this.memberRepository.save(newMember);
+      return newMember;
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error)
+    }
   }
 }

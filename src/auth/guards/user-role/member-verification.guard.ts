@@ -20,7 +20,7 @@ export class MemberVerificationGuard implements CanActivate
   {
     const req:RequestWithUser= context.switchToHttp().getRequest();
     const user:User= req.user;
-    const groupId= String(req.params.groupId);
+    const groupId= String(req.params.id);
     const member:Member = await this.memberService.verifyMember(user, groupId);
     req.member = member;
     return true;

@@ -8,6 +8,7 @@ import { User } from 'src/user/entities/user.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles.interface';
 import { Auth } from 'src/auth/decorators/auth.decorator';
+import { JoinByLinkDto } from './dto/join-by-link.dto';
 
 @Controller('group')
 export class GroupController 
@@ -17,9 +18,10 @@ export class GroupController
   {}
 
   @Post()
-  async create(@Body() createGroupDto: CreateGroupDto) 
+  @UseGuards(AuthGuard())
+  async create(@Body() createGroupDto: CreateGroupDto, @GetUser() user: User) 
   {
-    return this.groupService.create(createGroupDto);
+    return this.groupService.create(createGroupDto, user);
   }
 
   @Get()
@@ -40,7 +42,7 @@ export class GroupController
     return this.groupService.findOne(id, user);
   }
 
-  @Get(':members')
+  @Get(':id/members')
   @UseGuards(AuthGuard())
   getMembers(@Param('id', ParseUUIDPipe) id: string,
     @GetUser() user: User,
@@ -49,9 +51,8 @@ export class GroupController
     return this.groupService.getMembers(id, user);
   }
 
-
   @Patch(':id')
-  @Auth(ValidRoles.admin)
+  @Auth(ValidRoles.Admin)
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateGroupDto: UpdateGroupDto,
     @GetUser() user: User) 
   {
@@ -59,24 +60,31 @@ export class GroupController
   }
 
   @Delete(':id')
-  @Auth(ValidRoles.admin)
+  @Auth(ValidRoles.Admin)
   remove(@Param('id') id: string,
     @GetUser() user : User) 
   {
     return this.groupService.remove(id, user);
   }
-  @Post(':ban')
-  @Auth(ValidRoles.admin)
+
+  @Post(':id/ban')
+  @Auth(ValidRoles.Admin)
   ban(@Body() createGroupDto: CreateGroupDto) 
   {
-    return this.groupService.create(createGroupDto);
   }
 
-  @Get(':getinvitationlink')
-  @Auth(ValidRoles.admin, ValidRoles.superUser, ValidRoles.user)
+  @Get(':id/invitation-link')
+  @Auth(ValidRoles.Admin,ValidRoles.User)
   getInvitationLink(@Param('id', ParseUUIDPipe) id: string,
     @GetUser() user: User)
   {
     return this.groupService.getInvitationLink(id, user)
+  }
+
+  @Post('joinbylink')
+  @UseGuards(AuthGuard())
+  joinByLink(@Body() joinByLinkDto: JoinByLinkDto, @GetUser() user: User)
+  {
+    return this.groupService.joinByLink(joinByLinkDto, user);
   }
 }

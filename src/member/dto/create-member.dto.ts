@@ -8,7 +8,7 @@ import {
   MaxLength,
   MinLength
 } from "class-validator";
-import {MemberRole} from "../entities/member.entity";
+import { ValidRoles } from "src/auth/interfaces/valid-roles.interface";
 
 export class CreateMemberDto
 {
@@ -34,9 +34,9 @@ export class CreateMemberDto
   @IsNotEmpty()
   userId: string;
 
-  @IsEnum(MemberRole)
+  @IsEnum(ValidRoles)
   @IsOptional()
-  role: MemberRole;
+  role: ValidRoles;
   //TODO: poner roles plurales
 }
 

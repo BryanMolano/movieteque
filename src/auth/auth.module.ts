@@ -21,8 +21,6 @@ import { MemberModule } from 'src/member/member.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) =>
       {
-        // console.log('JWT Secret', configService.get('JWT_SECRET'));
-        // console.log('JWT SECRET', process.env.JWT_SECRET);
         return {
           secret: configService.get('JWT_SECRET'),
           signOptions: {

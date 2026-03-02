@@ -47,7 +47,7 @@ export class User
 
   @OneToMany(() => Member,
     member => member.user,
-    {cascade: true})
+    {cascade: true })
   members?: Member[];
 
   @CreateDateColumn()

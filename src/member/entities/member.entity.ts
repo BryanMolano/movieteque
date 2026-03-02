@@ -1,12 +1,13 @@
 import {Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
 import {User} from "../../user/entities/user.entity";
 import { Group } from "src/group/entities/group.entity";
+import { ValidRoles } from "src/auth/interfaces/valid-roles.interface";
 
-export enum MemberRole
-{
-  Admin = 'Admin',
-  User = 'User',
-}
+// export enum MemberRole
+// {
+//   Admin = 'Admin',
+//   User = 'User',
+// }
 
 @Entity('members')
 @Index(['group', 'user'], {unique: true})
@@ -37,10 +38,10 @@ export class Member
 
   @Column({
     type: 'enum',
-    enum: MemberRole,
-    default: MemberRole.User,
+    enum: ValidRoles,
+    default: ValidRoles.User,
   })
-  role: MemberRole;
+  role: ValidRoles;
 
   @Column({
     type: 'bool',
