@@ -13,7 +13,6 @@ export class UserService
     private readonly userRepository: Repository<User>
   )
   {
-    
   }
 
   async findAll(term: string, user:User) 
@@ -26,7 +25,7 @@ export class UserService
           id: Not(user.id),
           username:ILike(`%${term}%`),
         },
-        take: 10
+        take: 20
       })
       return users;
     }
@@ -36,17 +35,17 @@ export class UserService
     }
   }
 
-  async findOne(term: string, user: User) 
+  async findOne(term: string) 
   {
     try
     {
-      const users = await this.userRepository.findOne({
+      const userfound = await this.userRepository.findOne({
         where:{
-          id: Not(user.id),
+          // id: Not(user.id),
           username:ILike(`%${term}%`)
         },
       })
-      return users;
+      return userfound;
     }
     catch(error)
     {

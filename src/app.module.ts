@@ -10,7 +10,8 @@ import { MovieModule } from './movie/movie.module';
 import { RecommendationModule } from './recommendation/recommendation.module';
 import { MemberModule } from './member/member.module';
 import { InteractionModule } from './interaction/interaction.module';
-import { FilesService } from './files/files.service';
+import { FileModule } from './file/file.module';
+import { FileService } from './file/file.service';
 
 @Module({
   imports: [
@@ -33,11 +34,12 @@ import { FilesService } from './files/files.service';
     RecommendationModule,
     MemberModule,
     InteractionModule,
+    FileModule,
 
 
   ],
   controllers: [AppController],
-  providers: [AppService, FilesService],
+  providers: [AppService, FileService],
 })
 export class AppModule
 {

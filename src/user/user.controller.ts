@@ -1,40 +1,40 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, UseGuards, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UpdateUserDto } from './dto/update-user.dto';
+// import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from './entities/user.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { FilesService } from 'src/files/files.service';
+import { FileService } from 'src/file/file.service';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('user')
 export class UserController 
 {
   constructor(private readonly userService: UserService,
-    private readonly fileService: FilesService) 
+    private readonly fileService: FileService) 
   {}
 
 
   @Get(':term/search')
-  @UseGuards(AuthGuard())
+  @UseGuards(AuthGuard('jwt'))
   findAll(@Param('term')term:string, @GetUser() user:User) 
   {
     return this.userService.findAll(term, user);
   }
 
   @Get(':term/user')
-  @UseGuards(AuthGuard())
-  findOne(@Param('term') term: string, @GetUser() user:User) 
+  @UseGuards(AuthGuard('jwt'))
+  findOne(@Param('term') term: string) 
   {
-    return this.userService.findOne(term, user);
+    return this.userService.findOne(term);
   }
 
   @Patch('profile')
-  @UseGuards(AuthGuard())
+  @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('image'))
   async update(
-    // @Param('id') id: string, 
-    @Body() updateData: {description?: string}, 
+    @Body() updateData: UpdateUserDto,
     @GetUser() user:User,
     @UploadedFile(
       new ParseFilePipe({
@@ -47,16 +47,25 @@ export class UserController
     )file?: Express.Multer.File, 
   )
   {
+    if(!file && (!updateData || Object.keys(updateData).length === 0))
+      return user;
     let currentImage = user.imgUrl;
+    
     if(file)
     {
-      currentImage = await this.fileService.uploadProfileImage(file);
-    }
+      if(currentImage)
+      { 
+        const urlParsed = new URL(currentImage)
+        let urlPathname = urlParsed.pathname
+        urlPathname = urlPathname.substring(1)
+        await this.fileService.deleteProfileImage(urlPathname)
+      }
+      currentImage= await this.fileService.uploadProfileImage(file);
 
-    return this.userService.update(user, {
-      description: updateData.description,
-      imgUrl: currentImage 
-    })
+    }
+    updateData.imgUrl = currentImage;
+
+    return this.userService.update(user, updateData)
 
   }
 
