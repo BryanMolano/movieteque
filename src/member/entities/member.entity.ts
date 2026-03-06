@@ -28,7 +28,9 @@ export class Member
   })
   nickname: string;
 
-  @ManyToOne(() => Group)
+  @ManyToOne(() => Group, {
+    onDelete:'CASCADE'
+  })
   @JoinColumn({name: 'group_id'})
   group: Group;
 

@@ -36,10 +36,6 @@ export class MemberService
     return `This action returns a #${id} member`;
   }
 
-  update(id: number, updateMemberDto: UpdateMemberDto) 
-  {
-    return `This action updates a #${id} member`;
-  }
 
   remove(id: number) 
   {
@@ -67,5 +63,13 @@ export class MemberService
     return member;
   }
 
+  // async update(id: string, updateMemberDto: UpdateMemberDto, user: User) 
+  // {
+  //   await this.findOne(id, user); 
+  //   const updatedGroup = await this.groupRepository.preload({id: id, ...updateGroupDto});
+  //   if(!updatedGroup) throw new NotFoundException('group not found')
+  //   await this.groupRepository.save(updatedGroup);
+  //   return updatedGroup;
+  // }
 
 }

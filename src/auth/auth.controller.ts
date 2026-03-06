@@ -14,6 +14,13 @@ export class AuthController
   {
   }
 
+  @Get('authUser')
+  @UseGuards(AuthGuard())
+  authUser(@GetUser() user: User)
+  {
+    return user;
+  }
+
   @Post('register')
   create(@Body() createUserDto: CreateUserDto)
   {

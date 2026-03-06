@@ -6,6 +6,7 @@ import { Group } from './entities/group.entity';
 import { MemberModule } from 'src/member/member.module';
 import { UserModule } from 'src/user/user.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { FileModule } from 'src/file/file.module';
 
 @Module({
   controllers: [GroupController],
@@ -14,6 +15,7 @@ import { AuthModule } from 'src/auth/auth.module';
     MemberModule, 
     UserModule,
     AuthModule,
+    FileModule,
   ],
 })
 export class GroupModule 

@@ -23,7 +23,7 @@ export class FileService
       // Tomamos el buffer (la imagen cruda en RAM) y le decimos a sharp que 
       // la redimensione a 300x300, la convierta a WebP (muy liviano) y la optimice.
       const optimizedImageBuffer = await sharp(file.buffer)
-        .resize(300, 300, { fit: 'cover' })
+        .resize(600, 600, { fit: 'cover' })
         .webp({ quality: 80 })
         .toBuffer();
 
