@@ -3,7 +3,7 @@ import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { InjectRepository} from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Group } from './entities/group.entity';
+import { Group, GroupType } from './entities/group.entity';
 import { PaginationDto } from './dto/pagination.dto';
 import { User } from 'src/user/entities/user.entity';
 import { Member} from 'src/member/entities/member.entity';
@@ -405,6 +405,29 @@ export class GroupService
       console.log(error);
       throw new UnauthorizedException('the links is invalid or expired, the availability of the link is usually 2 hours since the person who send it ti you copied it.')
     }
+  }
+  async findPublicGroupsUser(id: string)
+  {
+    try
+    {
+      const publicGroups= await this.groupRepository.find({
+        where:{
+          members:{
+            user:{
+              id:id
+            }
+          },
+          type:GroupType.PUBLIC
+        }
+      })
+      return publicGroups;
+    }
+    catch(error)
+    {
+      console.log(error)
+      throw new InternalServerErrorException('my bad chat')
+    }
+
   }
 
 }

@@ -177,4 +177,16 @@ export class GroupController
     return this.groupService.verifyInvitationToken(jwt);
   }
 
+  @Get(':id/get-public-groups')
+  @UseGuards(AuthGuard())
+  findPublicGroupsUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @GetUser() user: User,
+  )
+  {
+    return this.groupService.findPublicGroupsUser(id)
+
+  }
+
+
 }

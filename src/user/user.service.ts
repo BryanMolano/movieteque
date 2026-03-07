@@ -78,6 +78,21 @@ export class UserService
     }
   }
 
-
+  async findOneId(id: string) 
+  {
+    try
+    {
+      const userfound = await this.userRepository.findOne({
+        where:{
+          id: id
+        },
+      })
+      return userfound;
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error)
+    }
+  }
 
 }
