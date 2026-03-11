@@ -410,22 +410,49 @@ export class GroupService
   {
     try
     {
-      const publicGroups= await this.groupRepository.find({
-        where:{
-          members:{
-            user:{
-              id:id
-            }
-          },
-          type:GroupType.PUBLIC
-        }
-      })
-      return publicGroups;
+      return await this.groupRepository.createQueryBuilder('group')
+        .innerJoin('group.members', 'filterMember', 'filterMember.user.id = :id', { id })
+        .where('group.type = :type',{type: GroupType.PUBLIC} )
+        .leftJoinAndSelect('group.members', 'members')
+        .leftJoinAndSelect('members.user', 'users')
+        .getMany()
     }
     catch(error)
     {
       console.log(error)
       throw new InternalServerErrorException('my bad chat')
+    }
+
+  }
+  async joinPublicGroup(id:string, user:User)
+  {
+    try
+    {
+      const group = await this.groupRepository.findOneBy({id});
+      if(!group) throw new NotFoundException('the group does not exist')
+      const AlreadyAMember= await this.memberRepository.findOne({
+        where:{
+          user:{
+            id:user.id
+          },
+          group:{
+            id:id
+          }
+        }
+      });
+      if(AlreadyAMember) 
+        throw new BadRequestException(`you are already part of ${group.name}`)
+      const newMember = this.memberRepository.create({
+        entryDate: new Date,
+        group,
+        user,
+      });
+      await this.memberRepository.save(newMember);
+      return newMember;
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error)
     }
 
   }

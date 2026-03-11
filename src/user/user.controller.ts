@@ -36,7 +36,7 @@ export class UserController
     return this.userService.findOneId(id);
   }
 
-  @Patch('profile')
+  @Patch('')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('image'))
   async update(

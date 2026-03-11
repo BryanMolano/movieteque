@@ -187,6 +187,13 @@ export class GroupController
     return this.groupService.findPublicGroupsUser(id)
 
   }
-
+  @Post(':id/joinPublicGroup')
+  @UseGuards(AuthGuard())
+  joinPublicGroup(
+    @Param('id', ParseUUIDPipe) groupId: string,
+    @GetUser() user: User)
+  {
+    return this.groupService.joinPublicGroup(groupId, user);
+  }
 
 }
