@@ -121,9 +121,9 @@ export class GroupService
       const group = await this.groupRepository.findOne({
         where:{
           id: id,
-          members:{
-            isBanned: false,
-          }
+          // members:{
+          //   isBanned: false,
+          // }
         },
         relations:{
           members: {
@@ -247,6 +247,10 @@ export class GroupService
     {
       throw error
     }
+    if(error instanceof BadRequestException)
+    {
+      throw error
+    }
     throw new InternalServerErrorException('Unexpected error occurred, check server logs');
   }
 
@@ -285,8 +289,13 @@ export class GroupService
         }
       });
       if(AlreadyAMember) 
+      {
+
+        if(AlreadyAMember.isBanned == true)
+          throw new BadRequestException(`you are banned from ${group.name}`)
+
         throw new BadRequestException(`you are already part of ${group.name}`)
-      // throw new BadRequestException('you are already part of this group')
+      }
       const newMember = this.memberRepository.create({
         entryDate: new Date,
         group,
@@ -318,7 +327,8 @@ export class GroupService
       });
       if(!memberToban) throw new NotFoundException('user not found')
       if(memberToban.user.id === admin.id) throw new ForbiddenException('you cannot ban yourself')
-      memberToban.isBanned = true;
+      if(memberToban.isBanned == true) memberToban.isBanned = false;
+      else memberToban.isBanned = true;
       await this.memberRepository.save(memberToban)
       return memberToban;
     }
