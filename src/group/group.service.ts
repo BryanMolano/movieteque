@@ -16,6 +16,8 @@ import { BanMemberDto } from './dto/ban-member.dto';
 import { ChangeMemberRoleDto } from './dto/change-member-role.dto';
 import { FileService } from 'src/file/file.service';
 import { ChangeMemberNicknameDto } from './dto/change-member-nickname.dto';
+import { InviteMemberDto } from './dto/invite-member.dto';
+import { UserService } from 'src/user/user.service';
 
 // Este servicio tiene un problema de optimizacion, el guard member-role.guard ya verifica que el usaurio sea parte
 // del grupo enviado por id en los params de cada método necesario en el contorlador, pero acá en algunos metodos
@@ -35,7 +37,8 @@ export class GroupService
     private readonly memberRepository : Repository<Member>,
     private readonly memberService: MemberService,
     private readonly jwtService: JwtService,
-    private readonly fileService: FileService
+    private readonly fileService: FileService,
+    private readonly userService: UserService 
   )
   {
   }
@@ -64,7 +67,7 @@ export class GroupService
     }
   }
 
-  async findAll(paginationDto: PaginationDto, user: User) 
+  async findAll(paginationDto: PaginationDto, userId: string) 
   {
     try
     {
@@ -74,8 +77,11 @@ export class GroupService
         .take(limit)
         .skip(offset)
         .innerJoin('group.members', 'memberFilter')
-        .where('memberFilter.user_id = :userId', {userId:user.id})
+        .where('memberFilter.user_id = :userId', {userId:userId})
         .andWhere('memberFilter.isBanned = :isBanned', {isBanned: false})
+        .andWhere('memberFilter.role IN (:...validRoles)', { 
+          validRoles: [ValidRoles.User, ValidRoles.Admin] 
+        })
         .addSelect((subQuery)=>
         {
           return subQuery
@@ -93,19 +99,44 @@ export class GroupService
         (group as any).created_at = `${day}/${month}/${year}`;
         return group;
       })
-      // const groups = await this.groupRepository.find({
-      //   take:limit,
-      //   skip:offset,
-      //   where:{
-      //     members:{
-      //       isBanned: false,
-      //       user:{
-      //         id:user.id
-      //       }
-      //     } 
-      //   }
-      // })
-      // return groups;
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error);
+    }
+    
+  }
+
+  async findAllInvitedGroups(paginationDto: PaginationDto, userId: string) 
+  {
+    try
+    {
+
+      const {limit = 10, offset = 0} = paginationDto;
+      const query = this.groupRepository.createQueryBuilder('group')
+        .take(limit)
+        .skip(offset)
+        .innerJoin('group.members', 'memberFilter')
+        .where('memberFilter.user_id = :userId', {userId:userId})
+        .andWhere('memberFilter.isBanned = :isBanned', {isBanned: false})
+        .andWhere('memberFilter.role= :invitedRole', {invitedRole: ValidRoles.Invited})
+        .addSelect((subQuery)=>
+        {
+          return subQuery
+            .select('Count(m.id)', 'count')
+            .from(Member, 'm')
+            .where('m.group_id = group.id')
+        }, 'membersCount')
+      const {entities, raw} = await query.getRawAndEntities()
+      return entities.map((group, i)=>
+      {
+        (group as any).membersCount = Number(raw[i].membersCount);
+        const day = String(group.created_at.getDate()).padStart(2,'0');
+        const month = String(group.created_at.getMonth()+1).padStart(2, '0');
+        const year = String(group.created_at.getFullYear());
+        (group as any).created_at = `${day}/${month}/${year}`;
+        return group;
+      })
     }
     catch(error)
     {
@@ -466,5 +497,100 @@ export class GroupService
     }
 
   }
+  async inviteMember (groupId: string, inviteMemberDto: InviteMemberDto, user: User)
+  {
+    try
+    {
+      const {id} = inviteMemberDto;
+      const group = await this.groupRepository.findOneBy({id: groupId})
+      const userToInvite= await this.userService.findOneId(id)
+      const AlreadyAMember= await this.memberRepository.findOne({
+        where:{
+          user:{
+            id:id
+          },
+          group:{
+            id:groupId
+          }
+        }
+      });
+      if(AlreadyAMember) 
+        throw new BadRequestException(`that user is already part of ${group?.name}`)
+      if (!group) throw new NotFoundException('group not found');
+      if (!userToInvite) throw new NotFoundException('user not found');
+      const newMember = this.memberRepository.create({
+        group,
+        user: userToInvite,
+        role: ValidRoles.Invited,
+      });
+      await this.memberRepository.save(newMember);
+      return newMember;
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error)
+    }
+  }
+  async acceptInvitation (groupId: string, user: User)
+  {
+    try
+    {
+      const group = await this.groupRepository.findOneBy({id: groupId});
+      if(!group) throw new NotFoundException('the group does not exist')
+      const member = await this.memberRepository.findOne({
+        where:{
+          user:{
+            id:user.id
+          },
+          group:{
+            id:groupId
+          }
+        }
+      });
+      if(member) 
+      {
+        if(member.isBanned == true)
+          throw new BadRequestException(`you are banned from ${group.name}`)
+        if(member.role!= ValidRoles.Invited )
+          throw new BadRequestException(`you are already part of ${group.name}`)
+        member.entryDate= new Date;
+        member.role = ValidRoles.User;
+        await this.memberRepository.save(member);
+        return member;
+      }
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error)
+    }
+  
+  }
 
+  async deleteMember(groupId: string, user: User)
+  {
+    try
+    {
+      const group = await this.groupRepository.findOneBy({id: groupId});
+      if(!group) throw new NotFoundException('the group does not exist')
+      const member = await this.memberRepository.findOne({
+        where:{
+          user:{
+            id:user.id
+          },
+          group:{
+            id:groupId
+          }
+        }
+      });
+      if(member) 
+      {
+        await this.memberRepository.remove(member)
+
+      }
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error)
+    }
+  }
 }

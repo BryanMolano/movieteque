@@ -14,6 +14,7 @@ import { ChangeMemberRoleDto } from './dto/change-member-role.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileService } from 'src/file/file.service';
 import { ChangeMemberNicknameDto } from './dto/change-member-nickname.dto';
+import { InviteMemberDto } from './dto/invite-member.dto';
 
 @Controller('group')
 export class GroupController 
@@ -56,13 +57,23 @@ export class GroupController
 
 
 
-  @Get()
+  @Get(':id/userGroups')
   @UseGuards(AuthGuard())
   findAll(@Query() paginationDto : PaginationDto,
     @GetUser() user: User,
+    @Param('id', ParseUUIDPipe) userId: string 
   ) 
   {
-    return this.groupService.findAll(paginationDto, user);
+    return this.groupService.findAll(paginationDto, userId);
+  }
+  @Get(':id/userInvitedGroups')
+  @UseGuards(AuthGuard())
+  findAllInvitedGroups(@Query() paginationDto : PaginationDto,
+    @GetUser() user: User,
+    @Param('id', ParseUUIDPipe) userId: string 
+  ) 
+  {
+    return this.groupService.findAllInvitedGroups(paginationDto, userId);
   }
 
   @Get(':id')
@@ -194,6 +205,30 @@ export class GroupController
     @GetUser() user: User)
   {
     return this.groupService.joinPublicGroup(groupId, user);
+  }
+
+  @Post(':id/invite')
+  @Auth(ValidRoles.Admin, ValidRoles.User)
+  invite(
+    @Param('id', ParseUUIDPipe) groupId: string,
+    @Body() inviteMemberDto: InviteMemberDto, 
+    @GetUser() user: User) 
+  {
+    return this.groupService.inviteMember(groupId, inviteMemberDto, user);
+  }
+
+  @Post(':id/acceptInvitation')
+  @Auth(ValidRoles.Invited)
+  acceptInvitation(@Param('id', ParseUUIDPipe) groupId: string, @GetUser() user: User) 
+  {
+    return this.groupService.acceptInvitation(groupId, user);
+  }
+
+  @Post(':id/deleteMember')
+  @Auth(ValidRoles.Invited)
+  deleteMember(@Param('id', ParseUUIDPipe) groupId: string, @GetUser() user: User) 
+  {
+    return this.groupService.deleteMember(groupId, user);
   }
 
 }
