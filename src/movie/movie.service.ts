@@ -75,7 +75,7 @@ export class MovieService
         this.httpService.get<TMDBMovieDetailsResponse>(`https://api.themoviedb.org/3/movie/${id}`, config) 
       )
 
-      const providers= data.watch_providers.results['CO'];
+      const providers= data['watch/providers']?.results?.['CO'];
 
       return {
         id:data.id,
@@ -107,7 +107,7 @@ export class MovieService
             character:actor.character,
             profile_path:actor.profile_path
           }
-        }),
+        }).slice(0,25),
         directors: data.credits.crew.filter((crewMember)=> crewMember.job === 'Director').map((director)=>
         {
           return{
@@ -183,15 +183,16 @@ export class MovieService
             width: poster.width
           }
         }).slice(0,20),
-        videos: data.videos.results.map((video)=>
-        {
-          return{
-            id:video.id,
-            name:video.name,
-            key:video.key,
-            type:video.type
-          }
-        }).slice(0,3),
+        videos: data.videos.results.filter((video)=> video.type === 'Trailer' && video.site === 'Youtube')
+          .map((video)=>
+          {
+            return{
+              id:video.id,
+              name:video.name,
+              key:video.key,
+              type:video.type
+            }
+          }).slice(0,3),
         watch_providers: providers?{
           flatrate: providers.flatrate?.map((provider)=>
           {

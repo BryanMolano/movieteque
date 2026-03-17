@@ -24,18 +24,18 @@ export class MovieController
   {
     return this.movieService.findAll(term, user);
   }
-  @Get(':id')
+  @Get(':id/movieDetails')
   @UseGuards(AuthGuard('jwt'))
-  movieDetails(@Param('term')id:string, @GetUser() user:User) 
+  movieDetails(@Param('id')id:string, @GetUser() user:User) 
   {
     return this.movieService.movieDetails(id, user);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) 
-  {
-    return this.movieService.findOne(+id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) 
+  // {
+  //   return this.movieService.findOne(+id);
+  // }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateMovieDto: UpdateMovieDto) 

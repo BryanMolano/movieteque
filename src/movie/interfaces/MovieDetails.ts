@@ -13,11 +13,15 @@ export interface TMDBMovieDetailsResponse {
   origin_country: string[];
   original_language: string;
 
+  popularity: number,
+  vote_average: number,
+  vote_count: number,
+
   genres: TMDBGenres[];
   credits: TMDBCredits;
   videos: TMDBVideos;
   images: TMDBImages;
-  watch_providers: TMDBWatchProviders;
+  'watch/providers': TMDBWatchProviders;
 }
 
 export interface TMDBGenres{
@@ -51,6 +55,7 @@ export interface TMDBRawVideo {
   name: string;
   key: string;
   type: string;
+  site: string;
 }
 export interface TMDBWatchProviders {
   results: {
