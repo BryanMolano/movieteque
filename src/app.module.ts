@@ -15,7 +15,7 @@ import { FileService } from './file/file.service';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({isGlobal:true}),
     TypeOrmModule.forRoot({
       ssl: process.env.STAGE === 'prod',
       type: 'postgres',

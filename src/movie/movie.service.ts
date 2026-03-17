@@ -1,18 +1,217 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-
+import { User } from 'src/user/entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Movie } from './entities/movie.entity';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { firstValueFrom } from 'rxjs';
+import { MovieSearchResponse } from './interfaces/movie-search-response';
+import { TMDBMovieDetailsResponse} from './interfaces/MovieDetails';
 @Injectable()
 export class MovieService 
 {
+  private readonly logger = new Logger('GroupService');
+  private readonly TMDBToken:string;
+  constructor(
+    @InjectRepository(Movie)
+    private readonly userRepository: Repository<Movie>,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService 
+  )
+  {
+    this.TMDBToken=this.configService.get('TMDB_TOKEN')!;
+  }
+
+  async findAll(term: string, user: User) 
+  {
+    try
+    {
+      const config={
+        params:{
+          query: term,
+          language:'es-ES',
+        },
+        headers:{
+          Authorization: `Bearer ${this.TMDBToken}`
+        }
+      }
+      const {data}= await firstValueFrom(
+        this.httpService.get<MovieSearchResponse>('https://api.themoviedb.org/3/search/movie', config) 
+      )
+      return data.results.map(movie => ({
+        id: movie.id,
+        title: movie.title,
+        original_title: movie.original_title,
+        poster_path: movie.poster_path,
+        release_date: movie.release_date
+      })
+      )
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error)
+    }
+
+  }
+
+  async movieDetails(id: string, user:User)
+  {
+    try
+    {
+      const config={
+        params:{
+          language:'es-ES',
+          append_to_response: 'credits,videos,watch/providers,images',
+          include_image_language:'es,en,null'
+        },
+        headers:{
+          Authorization: `Bearer ${this.TMDBToken}`
+        }
+      }
+      const {data}= await firstValueFrom(
+        this.httpService.get<TMDBMovieDetailsResponse>(`https://api.themoviedb.org/3/movie/${id}`, config) 
+      )
+
+      const providers= data.watch_providers.results['CO'];
+
+      return {
+        id:data.id,
+        title: data.title,
+        original_title:data.original_title,
+        poster_path: data.poster_path,
+        backdrop_path:data.backdrop_path,
+        release_date:data.release_date,
+        overview: data.overview,
+        
+        budget:data.budget,
+        revenue:data.revenue,
+        runtime:data.runtime,
+        origin_country:data.origin_country,
+        original_language:data.original_language,
+
+        genres: data.genres.map((genre)=>
+        {
+          return{
+            id:genre.id,
+            name:genre.name
+          };
+        }),
+        cast:data.credits.cast.map((actor)=>
+        {
+          return{
+            id:actor.id,
+            name:actor.name,
+            character:actor.character,
+            profile_path:actor.profile_path
+          }
+        }),
+        directors: data.credits.crew.filter((crewMember)=> crewMember.job === 'Director').map((director)=>
+        {
+          return{
+            id:director.id,
+            name:director.name,
+            profile_path:director.profile_path,
+            job:director.job,
+          }
+        }),
+        writers: data.credits.crew.filter((crewMember)=> crewMember.job === 'Writer'
+          ||crewMember.job === 'Screenplay' 
+          || crewMember.job === 'Story')
+          .map((writer)=>
+          {
+            return{
+              id:writer.id,
+              name:writer.name,
+              profile_path:writer.profile_path,
+              job:writer.job,
+            }
+          }),
+        composers: data.credits.crew.filter((crewMember)=> crewMember.job === 'Original Music Composer'
+          ||crewMember.job === 'Additional Music' 
+        )
+          .map((writer)=>
+          {
+            return{
+              id:writer.id,
+              name:writer.name,
+              profile_path:writer.profile_path,
+              job:writer.job,
+            }
+          }),
+        crew: data.credits.crew.filter((crewMember)=> crewMember.job === 'Producer'
+          ||crewMember.job === 'Executive Producer' 
+          ||crewMember.job === 'Director of Photography' 
+          ||crewMember.job === 'Art Direction' 
+          ||crewMember.job === 'Editor' 
+          ||crewMember.job === 'Costume Design' 
+          ||crewMember.job === 'Casting' 
+        )
+          .map((crewMember)=>
+          {
+            return{
+              id:crewMember.id,
+              name:crewMember.name,
+              profile_path:crewMember.profile_path,
+              job:crewMember.job,
+            }
+          })
+          .slice(0,40),
+        backdrops: data.images.backdrops.map((backdrop)=>
+        {
+          return{
+            file_path:backdrop.file_path,
+            height: backdrop.height,
+            width: backdrop.width
+          }
+        }).slice(0,10),
+        logos: data.images.logos.map((logo)=>
+        {
+          return{
+            file_path:logo.file_path,
+            height: logo.height,
+            width: logo.width
+          }
+        }).slice(0,5),
+        posters: data.images.posters.map((poster)=>
+        {
+          return{
+            file_path:poster.file_path,
+            height: poster.height,
+            width: poster.width
+          }
+        }).slice(0,20),
+        videos: data.videos.results.map((video)=>
+        {
+          return{
+            id:video.id,
+            name:video.name,
+            key:video.key,
+            type:video.type
+          }
+        }).slice(0,3),
+        watch_providers: providers?{
+          flatrate: providers.flatrate?.map((provider)=>
+          {
+            return{
+              provider_id:provider.provider_id,
+              provider_name:provider.provider_name,
+              logo_path:provider.logo_path
+            }
+          })||[]
+        }:null,
+      }
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error)
+    }
+  }
   create(createMovieDto: CreateMovieDto) 
   {
     return 'This action adds a new movie';
-  }
-
-  findAll() 
-  {
-    return `This action returns all movie`;
   }
 
   findOne(id: number) 
@@ -28,5 +227,15 @@ export class MovieService
   remove(id: number) 
   {
     return `This action removes a #${id} movie`;
+  }
+
+  private handleDBExceptions(error) 
+  {
+    this.logger.error(error);
+    if(error instanceof ForbiddenException)
+    {
+      throw error
+    }
+    throw new InternalServerErrorException('Unexpected error occurred, check server logs');
   }
 }
