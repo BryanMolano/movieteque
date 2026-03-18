@@ -92,6 +92,10 @@ export class MovieService
         origin_country:data.origin_country,
         original_language:data.original_language,
 
+        popularity: data.popularity,
+        vote_average: data.vote_average,
+        vote_count:data.vote_count,
+
         genres: data.genres.map((genre)=>
         {
           return{
