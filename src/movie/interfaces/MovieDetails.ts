@@ -6,6 +6,7 @@ export interface TMDBMovieDetailsResponse {
   backdrop_path: string | null;
   release_date: string;
   overview: string;
+  status:string;
 
   budget: number;
   revenue: number;

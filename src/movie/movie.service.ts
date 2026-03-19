@@ -1,5 +1,4 @@
 import { ForbiddenException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { User } from 'src/user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -30,11 +29,11 @@ export class MovieService
   {
     try
     {
+      this.logger.log(`Searching for movies with term: ${term} and locale: ${USER_LOCALE}`);
       const config={
         params:{
           query: term,
-          // language:'es-ES',
-          langague: USER_LOCALE || 'en-US',
+          language: USER_LOCALE,
         },
         headers:{
           Authorization: `Bearer ${this.TMDBToken}`
@@ -56,16 +55,15 @@ export class MovieService
     {
       this.handleDBExceptions(error)
     }
-
   }
 
-  async movieDetails(id: string, user:User)
+  async movieDetails(id: string, user:User, USER_LOCALE:string)
   {
     try
     {
       const config={
         params:{
-          language:'es-ES',
+          language:USER_LOCALE,
           append_to_response: 'credits,videos,watch/providers,images',
           include_image_language:'es,en,null'
         },
@@ -77,7 +75,8 @@ export class MovieService
         this.httpService.get<TMDBMovieDetailsResponse>(`https://api.themoviedb.org/3/movie/${id}`, config) 
       )
 
-      const providers= data['watch/providers']?.results?.['CO'];
+      const USER_REGION = USER_LOCALE.split('-')[1] || 'US'; 
+      const providers= data['watch/providers']?.results?.[USER_REGION];
 
       return {
         id:data.id,
@@ -87,6 +86,7 @@ export class MovieService
         backdrop_path:data.backdrop_path,
         release_date:data.release_date,
         overview: data.overview,
+        status: data.status,
         
         budget:data.budget,
         revenue:data.revenue,

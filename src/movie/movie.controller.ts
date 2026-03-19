@@ -27,11 +27,16 @@ export class MovieController
   {
     return this.movieService.findAll(term, user, USER_LOCALE);
   }
-  @Get(':id/movieDetails')
+
+
+  @Get(':id/:USER_LOCALE/movieDetails')
   @UseGuards(AuthGuard('jwt'))
-  movieDetails(@Param('id')id:string, @GetUser() user:User) 
+  movieDetails(@Param('id')id:string, @GetUser() user:User,
+    @Param('USER_LOCALE')USER_LOCALE:string, 
+
+  ) 
   {
-    return this.movieService.movieDetails(id, user);
+    return this.movieService.movieDetails(id, user, USER_LOCALE);
   }
 
   // @Get(':id')
