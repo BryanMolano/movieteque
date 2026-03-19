@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsString} from "class-validator";
+import { IsInt, IsNotEmpty, IsOptional, IsString, Max, Min} from "class-validator";
 export class CreateRecommendationDto 
 {
   @IsInt()
@@ -15,4 +15,14 @@ export class CreateRecommendationDto
   @IsNotEmpty()
   @IsString()
   USER_LOCALE: string;
+
+  @IsOptional()
+  @IsString()
+  message?:string;
+
+  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
+  @Max(10)
+  priority: number;
 }

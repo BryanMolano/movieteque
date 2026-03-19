@@ -1,24 +1,69 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { UpdateRecommendationDto } from './dto/update-recommendation.dto';
 import { User } from 'src/user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Recommendation } from './entities/recommendation.entity';
 import { MovieService } from 'src/movie/movie.service';
+import { GroupService } from 'src/group/group.service';
+import { Message } from './entities/message.entity';
 
 @Injectable()
 export class RecommendationService 
 {
+  private readonly logger = new Logger('GroupService');
   constructor(
     @InjectRepository(Recommendation)
     private readonly recommendationRepository: Repository<Recommendation>,
-    private readonly movieService : MovieService
+    @InjectRepository(Message)
+    private readonly messageRepository: Repository<Message>,
+    private readonly movieService : MovieService,
+    private readonly groupService: GroupService,
+    private readonly dataSource: DataSource,
   )
   {
   }
-  create(createRecommendationDto: CreateRecommendationDto, groupId:number, user: User) 
+  async create(createRecommendationDto: CreateRecommendationDto, groupId: string, user: User) 
   {
+    const movie = await this.movieService.ConsultOrCreate(createRecommendationDto)
+    if(!movie) throw new InternalServerErrorException('Movie not found or created trying to asign it to a recommendation')
+    const {message, priority}= createRecommendationDto;
+    const group = await this.groupService.findOne(groupId, user)
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try
+    {
+      const newRecommendation = this.recommendationRepository.create({
+        priority: priority,
+        movie: movie,
+        user: user,
+        group: group,
+      })
+      await queryRunner.manager.save(newRecommendation)
+      if(message && message.trim().length > 0)
+      {
+        const recommendationMessage = this.messageRepository.create({
+          message: message,
+          user:user,
+          recommendation: newRecommendation
+        })
+        await queryRunner.manager.save(recommendationMessage);
+      }
+      await queryRunner.commitTransaction();
+      return newRecommendation
+    }
+    catch(error)
+    {
+      await queryRunner.rollbackTransaction();
+      this.handleDBExceptions(error)
+    }
+    finally
+    {
+      await queryRunner.release();
+    }
   }
 
   findAll() 
@@ -39,5 +84,15 @@ export class RecommendationService
   remove(id: number) 
   {
     return `This action removes a #${id} recommendation`;
+  }
+
+  private handleDBExceptions(error) 
+  {
+    this.logger.error(error);
+    if(error instanceof ForbiddenException)
+    {
+      throw error
+    }
+    throw new InternalServerErrorException('Unexpected error occurred, check server logs');
   }
 }

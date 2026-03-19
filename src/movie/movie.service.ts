@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { MovieSearchResponse } from './interfaces/movie-search-response';
 import { TMDBMovieDetailsResponse} from './interfaces/MovieDetails';
+import { CreateRecommendationDto } from 'src/recommendation/dto/create-recommendation.dto';
 @Injectable()
 export class MovieService 
 {
@@ -17,7 +18,7 @@ export class MovieService
   private readonly TMDBToken:string;
   constructor(
     @InjectRepository(Movie)
-    private readonly userRepository: Repository<Movie>,
+    private readonly movieRepository: Repository<Movie>,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService 
   )
@@ -25,14 +26,15 @@ export class MovieService
     this.TMDBToken=this.configService.get('TMDB_TOKEN')!;
   }
 
-  async findAll(term: string, user: User) 
+  async findAll(term: string, user: User, USER_LOCALE:string) 
   {
     try
     {
       const config={
         params:{
           query: term,
-          language:'es-ES',
+          // language:'es-ES',
+          langague: USER_LOCALE || 'en-US',
         },
         headers:{
           Authorization: `Bearer ${this.TMDBToken}`
@@ -214,11 +216,35 @@ export class MovieService
       this.handleDBExceptions(error)
     }
   }
-  create(createMovieDto: CreateMovieDto) 
-  {
-    return 'This action adds a new movie';
-  }
 
+  async ConsultOrCreate(createRecommendationDto: CreateRecommendationDto)
+  {
+    try
+    {
+      const {movieId, moviePoster, movieName, USER_LOCALE}= createRecommendationDto;
+      const movie = await this.movieRepository.findOneBy({id: `${movieId}-${USER_LOCALE}`});
+      if(movie)
+      {
+        return movie;
+      }
+      else
+      {
+        const createdMovie = this.movieRepository.create({
+          id: `${movieId}-${USER_LOCALE}`,
+          idTMDB: movieId,
+          posterUrl: moviePoster,
+          name: movieName,
+          language_region: USER_LOCALE,
+        })
+        await this.movieRepository.save(createdMovie);
+        return createdMovie;
+      }
+    }
+    catch(error)
+    {
+      this.handleDBExceptions(error)
+    }
+  }
   findOne(id: number) 
   {
     return `This action returns a #${id} movie`;

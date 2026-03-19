@@ -12,19 +12,20 @@ export class MovieController
   constructor(private readonly movieService: MovieService) 
   {}
 
-  @Post()
-  create(@Body() createMovieDto: CreateMovieDto) 
-  {
-    return this.movieService.create(createMovieDto);
-  }
+  // @Post()
+  // create(@Body() createMovieDto: CreateMovieDto) 
+  // {
+  //   return this.movieService.create(createMovieDto);
+  // }
 
-  @Get(':term/search')
+  @Get(':term/:USER_LOCALE/search')
   @UseGuards(AuthGuard('jwt'))
   findAll(
-    @Param('term')term:string, @GetUser() user:User
+    @Param('term')term:string, @GetUser() user:User,
+    @Param('USER_LOCALE')USER_LOCALE:string, 
   ) 
   {
-    return this.movieService.findAll(term, user);
+    return this.movieService.findAll(term, user, USER_LOCALE);
   }
   @Get(':id/movieDetails')
   @UseGuards(AuthGuard('jwt'))

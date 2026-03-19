@@ -17,6 +17,7 @@ import { FileModule } from 'src/file/file.module';
     AuthModule,
     FileModule,
   ],
+  exports:[GroupService]
 })
 export class GroupModule 
 {}

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, ParseUUIDPipe } from '@nestjs/common';
 import { RecommendationService } from './recommendation.service';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { UpdateRecommendationDto } from './dto/update-recommendation.dto';
@@ -19,7 +19,7 @@ export class RecommendationController
   @Post(':id')
   @Auth(ValidRoles.Admin, ValidRoles.User)
   create(
-    @Param('groupId', ParseIntPipe)groupId:number, @GetUser() user:User,
+    @Param('id', ParseUUIDPipe)groupId:string, @GetUser() user:User,
     @Body() createRecommendationDto: CreateRecommendationDto
   ) 
   {

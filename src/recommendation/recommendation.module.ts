@@ -7,16 +7,20 @@ import { Message } from './entities/message.entity';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from 'src/auth/auth.module';
 import { MovieModule } from 'src/movie/movie.module';
+import { GroupModule } from 'src/group/group.module';
+import { MemberModule } from 'src/member/member.module';
 
 @Module({
   controllers: [RecommendationController],
   providers: [RecommendationService],
-  imports: [TypeOrmModule.forFeature([Recommendation, 
+  imports: [TypeOrmModule.forFeature([Recommendation, Message]), 
     ConfigModule,
     MovieModule,
+    GroupModule,
     AuthModule,
-    Message])],
-  exports: [TypeOrmModule]
+    MemberModule,
+  ],
+  exports: [TypeOrmModule, RecommendationService]
 })
 export class RecommendationModule 
 {}

@@ -7,6 +7,12 @@ export class Movie
   id: string;
 
   @Column({
+    type: 'int',
+    nullable: false,
+  })
+  idTMDB: number;
+
+  @Column({
     type: 'text',
     nullable: true,
   })
@@ -19,7 +25,8 @@ export class Movie
   name: string;
 
   @Column({
-    type: 'text',
+    type: 'varchar',
+    length: 10,
     nullable: false,
   })
   language_region: string;
