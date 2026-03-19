@@ -170,7 +170,7 @@ export class MovieService
             height: backdrop.height,
             width: backdrop.width
           }
-        }).slice(0,10),
+        }).slice(0,30),
         logos: data.images.logos.map((logo)=>
         {
           return{

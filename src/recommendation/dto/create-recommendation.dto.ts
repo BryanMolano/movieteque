@@ -1,22 +1,18 @@
-import { IsInt, IsNotEmpty, IsString, IsUUID, Max, Min } from "class-validator";
-
-export class CreateRecommendationDto {
-
+import { IsInt, IsNotEmpty, IsString} from "class-validator";
+export class CreateRecommendationDto 
+{
   @IsInt()
-  @Min(1)
-  @Max(10)
-  priority: number;
+  movieId: number;
 
-  @IsUUID()
   @IsNotEmpty()
-  movieId: string;
+  @IsString()
+  moviePoster: string;
 
-  // @IsInt()
-  // @IsNotEmpty()
-  // userId: number;
-
-  @IsUUID()
   @IsNotEmpty()
-  groupId: string;
+  @IsString()
+  movieName: string;
 
+  @IsNotEmpty()
+  @IsString()
+  USER_LOCALE: string;
 }

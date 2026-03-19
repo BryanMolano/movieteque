@@ -17,4 +17,10 @@ export class Movie
     nullable: false,
   })
   name: string;
+
+  @Column({
+    type: 'text',
+    nullable: false,
+  })
+  language_region: string;
 }

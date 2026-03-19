@@ -20,7 +20,9 @@ export class MovieController
 
   @Get(':term/search')
   @UseGuards(AuthGuard('jwt'))
-  findAll(@Param('term')term:string, @GetUser() user:User) 
+  findAll(
+    @Param('term')term:string, @GetUser() user:User
+  ) 
   {
     return this.movieService.findAll(term, user);
   }
