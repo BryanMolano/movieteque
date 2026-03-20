@@ -66,9 +66,18 @@ export class RecommendationService
     }
   }
 
-  findAll() 
+  findAll(groupId: string, user: User)
   {
-    return `This action returns all recommendation`;
+    try 
+    {
+      const recommendations = this.recommendationRepository.find({
+        where: {group: {id: groupId}}
+      })
+    }
+    catch (error) 
+    {
+      this.handleDBExceptions(error)
+    }
   }
 
   findOne(id: number) 

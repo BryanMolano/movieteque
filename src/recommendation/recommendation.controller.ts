@@ -27,9 +27,12 @@ export class RecommendationController
   }
 
   @Get()
-  findAll() 
+  @Auth(ValidRoles.Admin, ValidRoles.User)
+  findAll(
+    @Param('id', ParseUUIDPipe)groupId:string, @GetUser() user:User,
+  ) 
   {
-    return this.recommendationService.findAll();
+    return this.recommendationService.findAll(groupId, user);
   }
 
   @Get(':id')
