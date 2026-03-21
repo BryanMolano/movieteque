@@ -84,6 +84,29 @@ export class RecommendationService
   {
     return `This action returns a #${id} recommendation`;
   }
+  findOneComplete(id: string) 
+  {
+    try 
+    {
+      const recommendation = this.recommendationRepository.findOne({
+        where:{
+          id: id
+        },
+        relations: {
+          movie: true,
+          user: true,
+          group: true,
+          interactions: true,
+          messages: true,
+        }
+      })
+      return recommendation;
+    }
+    catch (error) 
+    {
+      this.handleDBExceptions(error)
+    }
+  }
 
   update(id: number, updateRecommendationDto: UpdateRecommendationDto) 
   {

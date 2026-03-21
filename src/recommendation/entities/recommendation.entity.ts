@@ -1,8 +1,11 @@
 import { Group } from "src/group/entities/group.entity";
 import { Movie } from "src/movie/entities/movie.entity";
 import { User } from "src/user/entities/user.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { RecommendationState } from "../interfaces/recommendation-state";
+import { Member } from "src/member/entities/member.entity";
+import { Interaction } from "src/interaction/entities/interaction.entity";
+import { Message } from "./message.entity";
 
 @Entity('recommendations')
 export class Recommendation 
@@ -38,4 +41,14 @@ export class Recommendation
     default: RecommendationState.Active,
   })
   recommendationState: RecommendationState;
+
+  @OneToMany(() => Interaction,
+    interaction => interaction.recommendation,
+    {cascade: true})
+  interactions?: Interaction[];
+
+  @OneToMany(() => Message,
+    message => message.recommendation,
+    {cascade: true})
+  messages?: Message[];
 }

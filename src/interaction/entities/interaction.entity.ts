@@ -17,6 +17,12 @@ export enum InteractionState
   SKIPPED = 'SKIPPED',
 }
 
+export enum InteractionType
+{
+  PRIVATE= 'PRIVATE',
+  PUBLIC= 'PUBLIC',
+}
+
 @Entity('interactions')
 @Index(['member', 'recommendation'], {unique: true})
 export class Interaction
@@ -53,4 +59,11 @@ export class Interaction
     default: InteractionState.UNSEEN
   })
   state: InteractionState;
+
+  @Column({
+    type: 'enum',
+    enum: InteractionType,
+    default: InteractionType.PRIVATE,
+  })
+  type: InteractionType;
 }

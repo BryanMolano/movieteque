@@ -40,6 +40,11 @@ export class RecommendationController
   {
     return this.recommendationService.findOne(+id);
   }
+  @Get(':id/complete')
+  findOneComplete(@Param('id') id: string) 
+  {
+    return this.recommendationService.findOneComplete(id);
+  }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateRecommendationDto: UpdateRecommendationDto) 
