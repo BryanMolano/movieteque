@@ -84,18 +84,22 @@ export class RecommendationService
   {
     return `This action returns a #${id} recommendation`;
   }
-  findOneComplete(id: string) 
+  async findOneComplete(id: string) 
   {
     try 
     {
-      const recommendation = this.recommendationRepository.findOne({
+      const recommendation = await this.recommendationRepository.findOne({
         where:{
           id: id
         },
         relations: {
           movie: true,
           user: true,
-          group: true,
+          group: {
+            members: {
+              user: true,
+            },
+          },
           interactions: true,
           messages: true,
         }
