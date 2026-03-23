@@ -8,6 +8,8 @@ import { Recommendation } from './entities/recommendation.entity';
 import { MovieService } from 'src/movie/movie.service';
 import { GroupService } from 'src/group/group.service';
 import { Message } from './entities/message.entity';
+import { ActivateDesactivateRecommendationDto } from './dto/activate-desactivate.dto';
+import { RecommendationState } from './interfaces/recommendation-state';
 
 @Injectable()
 export class RecommendationService 
@@ -107,6 +109,29 @@ export class RecommendationService
       return recommendation;
     }
     catch (error) 
+    {
+      this.handleDBExceptions(error)
+    }
+  }
+  async activateDesactivateRecommendation(activateDesactivateRecommendationDto: ActivateDesactivateRecommendationDto, groupId: string, user: User)
+  {
+    try
+    {
+      const {id} = activateDesactivateRecommendationDto;
+      const recommendation = await this.recommendationRepository.findOne({
+        where:{
+          id: id,
+          group: {id: groupId},
+        }
+      })
+      if(recommendation)
+      {
+        recommendation.recommendationState = recommendation.recommendationState === RecommendationState.Active ? RecommendationState.Inactive: RecommendationState.Active;
+        await this.recommendationRepository.save(recommendation);
+        return recommendation.recommendationState === RecommendationState.Active ? 'activated' : 'deactivated';
+      }
+    }
+    catch(error)
     {
       this.handleDBExceptions(error)
     }

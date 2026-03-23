@@ -7,6 +7,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles.interface';
 import { MovieService } from 'src/movie/movie.service';
+import { ActivateDesactivateRecommendationDto } from './dto/activate-desactivate.dto';
 
 @Controller('recommendation')
 export class RecommendationController 
@@ -33,6 +34,16 @@ export class RecommendationController
   ) 
   {
     return this.recommendationService.findAll(groupId, user);
+  }
+
+  @Post(':id/activate-desactivate')
+  @Auth(ValidRoles.Admin, ValidRoles.User)
+  activateDesactivateRecommendation(
+    @Param('id', ParseUUIDPipe)groupId:string, @GetUser() user:User,
+    @Body() activateDesactivatgeRecommendationDto: ActivateDesactivateRecommendationDto
+  ) 
+  {
+    return this.recommendationService.activateDesactivateRecommendation(activateDesactivatgeRecommendationDto, groupId, user);
   }
 
   @Get(':id')
