@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
 import { InteractionService } from './interaction.service';
 import { CreateInteractionDto } from './dto/create-interaction.dto';
 import { UpdateInteractionDto } from './dto/update-interaction.dto';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from 'src/user/entities/user.entity';
 
 @Controller('interaction')
 export class InteractionController 
@@ -9,10 +11,13 @@ export class InteractionController
   constructor(private readonly interactionService: InteractionService) 
   {}
 
-  @Post()
-  create(@Body() createInteractionDto: CreateInteractionDto) 
+  @Post(':id')
+  create(
+    @Param('id', ParseUUIDPipe) groupId: string,
+    @Body() createInteractionDto: CreateInteractionDto,
+    @GetUser() user: User)
   {
-    return this.interactionService.create(createInteractionDto);
+    return this.interactionService.create(createInteractionDto,groupId, user);
   }
 
   @Get()

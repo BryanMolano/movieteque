@@ -1,7 +1,7 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
-  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -24,7 +24,8 @@ export enum InteractionType
 }
 
 @Entity('interactions')
-@Index(['member', 'recommendation'], {unique: true})
+// @Index(['member', 'recommendation'], {unique: true})
+// la idea es que un miembro pueda poner varias interacciones, ya sea una publica y una privada o varias , da igual
 export class Interaction
 {
   @PrimaryGeneratedColumn('uuid')
@@ -52,6 +53,9 @@ export class Interaction
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @CreateDateColumn()
+  createdAt: Date;
 
   @Column({
     type: 'enum',

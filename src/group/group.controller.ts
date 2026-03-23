@@ -78,7 +78,8 @@ export class GroupController
 
   @Get(':id')
   @UseGuards(AuthGuard())
-  findOne(@Param('id', ParseUUIDPipe) id: string,
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
     @GetUser() user: User,
   ) 
   {
