@@ -24,6 +24,7 @@ export class InteractionService
   {}
   async create(createInteractionDto: CreateInteractionDto, groupId:string, user:User) 
   {
+    // this.logger.log(`trying to create interaction: ${createInteractionDto.type} for recommendation ${createInteractionDto.recommendationId} by user ${user.id} in group ${groupId}`);
     try 
     {
       const {response, rating, memberId, recommendationId, state, type} = createInteractionDto;
@@ -47,10 +48,10 @@ export class InteractionService
       const interaction = this.interactionRepository.create({
         response,
         rating,
-        state,
-        type,
         member,
-        recommendation
+        recommendation,
+        state,
+        type
       })
       await this.interactionRepository.save(interaction);
       return interaction;

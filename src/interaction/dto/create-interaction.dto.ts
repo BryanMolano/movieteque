@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Max } from "class-validator";
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Max, Min } from "class-validator";
 import { InteractionState, InteractionType } from "../entities/interaction.entity";
 
 export class CreateInteractionDto 
@@ -8,10 +8,10 @@ export class CreateInteractionDto
   @IsOptional()
   response: string;
 
-  @IsInt()
   @IsNotEmpty()
   @IsOptional()
   @Max(5)
+  @Min(0)
   @IsNumber({maxDecimalPlaces: 2})
   rating: number;
 

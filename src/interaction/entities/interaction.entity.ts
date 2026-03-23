@@ -38,7 +38,9 @@ export class Interaction
   response: string;
 
   @Column({
-    type: 'int',
+    type:'decimal',
+    precision: 3,
+    scale: 2,
     nullable: true,
   })
   rating: number;

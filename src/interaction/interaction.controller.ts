@@ -4,6 +4,8 @@ import { CreateInteractionDto } from './dto/create-interaction.dto';
 import { UpdateInteractionDto } from './dto/update-interaction.dto';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/user/entities/user.entity';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { ValidRoles } from 'src/auth/interfaces/valid-roles.interface';
 
 @Controller('interaction')
 export class InteractionController 
@@ -11,12 +13,14 @@ export class InteractionController
   constructor(private readonly interactionService: InteractionService) 
   {}
 
-  @Post(':id')
+  @Post(':id/create')
+  @Auth(ValidRoles.Admin, ValidRoles.User)
   create(
     @Param('id', ParseUUIDPipe) groupId: string,
     @Body() createInteractionDto: CreateInteractionDto,
     @GetUser() user: User)
   {
+    // console.log(`Received request to create interaction in group ${groupId} by user ${user.id} with data:`, createInteractionDto);
     return this.interactionService.create(createInteractionDto,groupId, user);
   }
 
