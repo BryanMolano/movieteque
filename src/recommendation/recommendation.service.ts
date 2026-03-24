@@ -102,7 +102,11 @@ export class RecommendationService
               user: true,
             },
           },
-          interactions: true,
+          interactions: {
+            member: {
+              user: true,
+            }
+          },
           messages: true,
         }
       })

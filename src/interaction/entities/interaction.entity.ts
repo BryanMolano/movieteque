@@ -72,4 +72,10 @@ export class Interaction
     default: InteractionType.PRIVATE,
   })
   type: InteractionType;
+
+  @Column({
+    type:'int',
+    nullable: false,
+  })
+  number:number;
 }
