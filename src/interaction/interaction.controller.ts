@@ -32,25 +32,19 @@ export class InteractionController
     @Body() deleteInteractionDto: DeleteInteractionDto,
     @GetUser() user: User)
   {
-    // console.log(`Received request to create interaction in group ${groupId} by user ${user.id} with data:`, createInteractionDto);
     return this.interactionService.delete(deleteInteractionDto);
   }
-  @Get()
-  findAll() 
-  {
-    return this.interactionService.findAll();
-  }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) 
+  @Patch(':id/:interactionId')
+  @Auth(ValidRoles.Admin, ValidRoles.User)
+  update(
+    @Param('id') groupId: string, 
+    @Param('interactionId') interactionId: string, 
+    @Body() updateInteractionDto: UpdateInteractionDto,
+    @GetUser() user: User
+  ) 
   {
-    return this.interactionService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateInteractionDto: UpdateInteractionDto) 
-  {
-    return this.interactionService.update(+id, updateInteractionDto);
+    return this.interactionService.update(updateInteractionDto, groupId, user, interactionId);
   }
 
   @Delete(':id')

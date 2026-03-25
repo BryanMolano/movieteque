@@ -100,9 +100,35 @@ export class InteractionService
     return `This action returns a #${id} interaction`;
   }
 
-  update(id: number, updateInteractionDto: UpdateInteractionDto) 
+  async update( updateInteractionDto: UpdateInteractionDto,groupId: string, user: User, interactionId: string)
   {
-    return `This action updates a #${id} interaction`;
+    try 
+    {
+      const interaction = await this.interactionRepository.findOne({
+        where:{id: interactionId,
+          recommendation:{group:{id: groupId}}
+
+        },
+        relations:{
+          member: {
+            user: true
+          },
+          recommendation: {group: true}
+        }
+      }
+      )
+      if(!interaction) throw new ForbiddenException('Interaction not found');
+      if(interaction.member.user.id !== user.id) throw new ForbiddenException('You can only update your own interactions');
+      const updatedInteraction = Object.assign(
+        interaction, updateInteractionDto
+      )
+      await this.interactionRepository.save(updatedInteraction);
+      return updatedInteraction;
+    }
+    catch (error) 
+    {
+      this.handleDBExceptions(error);
+    }
   }
 
   remove(id: number) 
