@@ -5,7 +5,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateInteractionDto } from './dto/create-interaction.dto';
 import { UpdateInteractionDto } from './dto/update-interaction.dto';
-import { Interaction, InteractionType } from './entities/interaction.entity';
+import { Interaction} from './entities/interaction.entity';
 import { Member } from 'src/member/entities/member.entity';
 
 @Injectable()
@@ -45,20 +45,29 @@ export class InteractionService
       })
       if(!member) throw new ForbiddenException('Member not found in this group for this user');
 
-      const interactionInDBPublic = await this.interactionRepository.find({
+      const maxInteractionInDB= await this.interactionRepository.findOne({
         where:{
           member: {id: memberId},
           recommendation: {id: recommendationId},
-          type: InteractionType.PUBLIC
+          type: type
+        },
+        order:{
+          number: 'DESC'
         }
       })
-      const interactionInDBPrivate = await this.interactionRepository.find({
-        where:{
-          member: {id: memberId},
-          recommendation: {id: recommendationId},
-          type: InteractionType.PRIVATE
-        }
-      })
+      // const maxInteractionInDBPrivate = await this.interactionRepository.findOne({
+      //   where:{
+      //     member: {id: memberId},
+      //     recommendation: {id: recommendationId},
+      //     type: InteractionType.PRIVATE
+      //   },
+      //   order:{
+      //     number: 'DESC'
+      //   }
+      // })
+
+      const nextOrNewNumber= (maxInteractionInDB?.number || 0) + 1   
+
       const interaction = this.interactionRepository.create({
         response,
         rating,
@@ -66,7 +75,8 @@ export class InteractionService
         recommendation,
         state,
         type,
-        number: type === InteractionType.PUBLIC ? interactionInDBPublic.length + 1 : interactionInDBPrivate.length + 1
+        number: nextOrNewNumber
+
       })
       await this.interactionRepository.save(interaction);
       return interaction;
