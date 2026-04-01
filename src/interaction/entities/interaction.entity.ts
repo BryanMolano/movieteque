@@ -53,10 +53,10 @@ export class Interaction
   @JoinColumn({name: 'recommendation_id'})
   recommendation: Recommendation;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' }) 
   createdAt: Date;
 
   @Column({

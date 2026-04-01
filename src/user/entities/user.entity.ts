@@ -50,9 +50,9 @@ export class User
     {cascade: true })
   members?: Member[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' }) 
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({type:'timestamptz'})
   updatedAt: Date;
 }

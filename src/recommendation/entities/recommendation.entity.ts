@@ -13,7 +13,7 @@ export class Recommendation
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' }) 
   createdAt: Date;
 
 
