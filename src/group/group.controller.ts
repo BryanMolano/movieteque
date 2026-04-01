@@ -54,9 +54,6 @@ export class GroupController
   }
 
 
-
-
-
   @Get(':id/userGroups')
   @UseGuards(AuthGuard())
   findAll(@Query() paginationDto : PaginationDto,
@@ -66,6 +63,8 @@ export class GroupController
   {
     return this.groupService.findAll(paginationDto, userId);
   }
+  
+
   @Get(':id/userInvitedGroups')
   @UseGuards(AuthGuard())
   findAllInvitedGroups(@Query() paginationDto : PaginationDto,
@@ -75,6 +74,7 @@ export class GroupController
   {
     return this.groupService.findAllInvitedGroups(paginationDto, userId);
   }
+
 
   @Get(':id')
   @UseGuards(AuthGuard())
@@ -86,6 +86,7 @@ export class GroupController
     return this.groupService.findOneComplete(id, user);
   }
 
+
   @Get(':id/members')
   @UseGuards(AuthGuard())
   getMembers(@Param('id', ParseUUIDPipe) id: string,
@@ -94,6 +95,7 @@ export class GroupController
   {
     return this.groupService.getMembers(id, user);
   }
+
 
   @Patch(':id')
   @Auth(ValidRoles.Admin)
@@ -135,6 +137,7 @@ export class GroupController
     return this.groupService.update(id, updateGroupDto, user);
   }
 
+
   @Delete(':id/deleteGroup')
   @Auth(ValidRoles.Admin)
   remove(@Param('id', ParseUUIDPipe) id: string,
@@ -143,11 +146,20 @@ export class GroupController
     return this.groupService.remove(id, user);
   }
 
+
   @Post(':id/ban')
   @Auth(ValidRoles.Admin)
   ban(@Param('id', ParseUUIDPipe) groupId: string ,@Body() banMemberDto: BanMemberDto, @GetUser() user: User) 
   {
     return this.groupService.banMember(groupId, banMemberDto, user);
+  }
+
+
+  @Post(':id/exitGroup')
+  @Auth(ValidRoles.User)
+  exitGroup(@Param('id', ParseUUIDPipe) groupId: string , @GetUser() user: User) 
+  {
+    return this.groupService.exitGroup(groupId, user);
   }
 
   @Post(':id/changeMemberRole')
@@ -157,6 +169,7 @@ export class GroupController
     return this.groupService.changeMemberRole(groupId, changeMemberRole, user);
   }
 
+
   @Get(':id/invitation-link')
   @Auth(ValidRoles.Admin,ValidRoles.User)
   getInvitationLink(@Param('id', ParseUUIDPipe) id: string,
@@ -165,6 +178,7 @@ export class GroupController
     return this.groupService.getInvitationLink(id, user)
   }
 
+
   @Post('joinbylink')
   @UseGuards(AuthGuard())
   joinByLink(@Body() joinByLinkDto: JoinByLinkDto, @GetUser() user: User)
@@ -172,6 +186,7 @@ export class GroupController
     return this.groupService.joinByLink(joinByLinkDto, user);
   }
   
+
   @Patch(':id/changeNickname')
   @Auth(ValidRoles.Admin, ValidRoles.User)
   changeMemberNickname(
@@ -182,12 +197,14 @@ export class GroupController
     return this.groupService.changeMemberNickname(groupId,changeMemberNicknameDto,user);
   }
 
+
   @Get('verify-invitation/:jwt')
   @UseGuards(AuthGuard()) 
   verifyInvitation(@Param('jwt') jwt: string) 
   {
     return this.groupService.verifyInvitationToken(jwt);
   }
+
 
   @Get(':id/get-public-groups')
   @UseGuards(AuthGuard())
@@ -199,6 +216,8 @@ export class GroupController
     return this.groupService.findPublicGroupsUser(id)
 
   }
+
+  
   @Post(':id/joinPublicGroup')
   @UseGuards(AuthGuard())
   joinPublicGroup(
@@ -207,6 +226,7 @@ export class GroupController
   {
     return this.groupService.joinPublicGroup(groupId, user);
   }
+
 
   @Post(':id/invite')
   @Auth(ValidRoles.Admin, ValidRoles.User)
@@ -218,12 +238,14 @@ export class GroupController
     return this.groupService.inviteMember(groupId, inviteMemberDto, user);
   }
 
+
   @Post(':id/acceptInvitation')
   @Auth(ValidRoles.Invited)
   acceptInvitation(@Param('id', ParseUUIDPipe) groupId: string, @GetUser() user: User) 
   {
     return this.groupService.acceptInvitation(groupId, user);
   }
+
 
   @Post(':id/deleteMember')
   @Auth(ValidRoles.Invited)

@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, InternalServerErro
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { InjectRepository} from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { Group, GroupType } from './entities/group.entity';
 import { PaginationDto } from './dto/pagination.dto';
 import { User } from 'src/user/entities/user.entity';
@@ -18,6 +18,9 @@ import { FileService } from 'src/file/file.service';
 import { ChangeMemberNicknameDto } from './dto/change-member-nickname.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { UserService } from 'src/user/user.service';
+import { Interaction } from 'src/interaction/entities/interaction.entity';
+import { Recommendation } from 'src/recommendation/entities/recommendation.entity';
+import { Message } from 'src/recommendation/entities/message.entity';
 
 // Este servicio tiene un problema de optimizacion, el guard member-role.guard ya verifica que el usaurio sea parte
 // del grupo enviado por id en los params de cada método necesario en el contorlador, pero acá en algunos metodos
@@ -35,10 +38,17 @@ export class GroupService
     private readonly groupRepository : Repository<Group>,
     @InjectRepository(Member)
     private readonly memberRepository : Repository<Member>,
+    @InjectRepository(Interaction)
+    private readonly interactionRepository: Repository<Interaction>,
+    @InjectRepository(Recommendation)
+    private readonly recommendationRepository: Repository<Recommendation>,
+    @InjectRepository(Message)
+    private readonly messageRepository: Repository<Message>,
     private readonly memberService: MemberService,
     private readonly jwtService: JwtService,
     private readonly fileService: FileService,
-    private readonly userService: UserService 
+    private readonly userService: UserService,
+    private readonly dataSource: DataSource
   )
   {
   }
@@ -585,12 +595,89 @@ export class GroupService
       if(member) 
       {
         await this.memberRepository.remove(member)
-
       }
     }
     catch(error)
     {
       this.handleDBExceptions(error)
+    }
+  }
+
+  async exitGroup(groupId: string, user: User)
+  {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try 
+    {
+      const group = await this.findOne(groupId, user)
+      if(!group) throw new NotFoundException('the group does not exist')
+      const member = await this.memberRepository.findOne({
+        where:{
+          group:{
+            id: groupId
+          },
+          user:{
+            id: user.id
+          }
+        }
+      })
+      if(!member) throw new NotFoundException('you are not part of the group')
+      const recommendations = await this.recommendationRepository.find({
+        where:{
+          group:{
+            id: groupId
+          },
+          user:{
+            id: user.id
+          }
+        }
+      })
+      if(recommendations && recommendations.length > 0)
+      {
+        const recommendationIds = recommendations.map(rec => rec.id);
+
+        const messages = await this.messageRepository.find({
+          where: {
+            recommendation: {
+              id: In(recommendationIds) 
+            }
+          }
+        });
+
+        if(messages && messages.length > 0)
+        {
+          await queryRunner.manager.remove(messages);
+        }
+      }
+      const interactions = await this.interactionRepository.find({
+        where:{
+          member:{
+            id: member.id
+          }
+        }
+      })
+
+      if(interactions && interactions.length > 0)
+      {
+        await queryRunner.manager.remove(interactions)
+      }
+      if(recommendations && recommendations.length > 0)
+      {
+        await queryRunner.manager.remove(recommendations)
+      }
+      await queryRunner.manager.remove(member);
+
+      await queryRunner.commitTransaction();
+    }
+    catch (error) 
+    {
+      await queryRunner.rollbackTransaction();
+      this.handleDBExceptions(error)
+    }
+    finally
+    {
+      await queryRunner.release();
     }
   }
 }
