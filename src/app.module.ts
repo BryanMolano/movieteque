@@ -12,6 +12,7 @@ import { MemberModule } from './member/member.module';
 import { InteractionModule } from './interaction/interaction.module';
 import { FileModule } from './file/file.module';
 import { FileService } from './file/file.service';
+import { MessageWsModule } from './message-ws/message-ws.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { FileService } from './file/file.service';
     TypeOrmModule.forRoot({
       ssl: process.env.STAGE === 'prod',
       type: 'postgres',
+      // timezone: 'Z',
       host: process.env.DB_HOST,
       port: +process.env.DB_PORT!,
       database: process.env.DB_NAME,
@@ -35,6 +37,7 @@ import { FileService } from './file/file.service';
     MemberModule,
     InteractionModule,
     FileModule,
+    MessageWsModule,
 
 
   ],

@@ -24,13 +24,14 @@ export class MessageWsGateway implements OnGatewayConnection, OnGatewayDisconnec
 
   async handleConnection(client: AuthenticatedSocket)
   {
-    const token = client.handshake.headers.authentication as string;
+    const token = client.handshake.auth.token as string;
     let payload: JwtPayload;
     try
     {
       payload = this.jwtService.verify(token);
       const user = await this.messageWsService.assignUserToSocket(payload.id);
       client.user = user;
+      client.emit('connection-ready')
     }
     catch (error)
     {
@@ -51,11 +52,12 @@ export class MessageWsGateway implements OnGatewayConnection, OnGatewayDisconnec
   @SubscribeMessage('join-room')
   async onJoinRoom(client:AuthenticatedSocket, recommendationId: string)
   {
+    if(!client.user) return;
     await client.join(recommendationId);
     console.log(`${client.user.username} entered the chat of the recommendation with dis id: ${recommendationId}`);
   }
 
-  @SubscribeMessage('join-room')
+  @SubscribeMessage('leave-room')
   async onExitRoom(client:AuthenticatedSocket, recommendationId: string)
   {
     await client.leave(recommendationId);
@@ -66,8 +68,7 @@ export class MessageWsGateway implements OnGatewayConnection, OnGatewayDisconnec
   async onMessageFromClient(client: AuthenticatedSocket, payload: NewMessageDto)
   {
     const message = await this.messageWsService.createMessage(client, payload);
-    this.wss.emit('message-from-server',{
-      message: message
-    })
+    this.wss.to(payload.recommendationId).emit('message-from-server', message
+    )
   }
 }

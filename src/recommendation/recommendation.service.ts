@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { UpdateRecommendationDto } from './dto/update-recommendation.dto';
 import { User } from 'src/user/entities/user.entity';
@@ -158,6 +158,35 @@ export class RecommendationService
     {
       throw error
     }
+    if(error instanceof NotFoundException)
+    {
+      throw error
+    }
     throw new InternalServerErrorException('Unexpected error occurred, check server logs');
+  }
+
+  async getMessages(groupId: string, user: User, recommendationId: string)
+  {
+    try 
+    {
+      const messages = await this.messageRepository.find({
+        where:{
+          recommendation: {id: recommendationId, group: {id: groupId}},
+        },
+        relations: {
+          user: true,
+        },
+        order:{
+          createdAt: 'ASC',
+        }
+      })
+      if(!messages) throw new NotFoundException('Messages not found for this recommendation')
+      if(messages.length === 0) return [];
+      return messages;
+    }
+    catch (error) 
+    {
+      this.handleDBExceptions(error)
+    }
   }
 }

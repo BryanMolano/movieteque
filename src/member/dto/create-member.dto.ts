@@ -20,7 +20,7 @@ export class CreateMemberDto
   @IsString()
   @IsNotEmpty()
   @MinLength(6)
-  @MaxLength(50)
+  @MaxLength(33)
   @Matches(/^[a-zA-Z0-9_]+$/, {
     message: 'nickname can only contain letters, numbers, and underscores'
   })
@@ -37,6 +37,5 @@ export class CreateMemberDto
   @IsEnum(ValidRoles)
   @IsOptional()
   role: ValidRoles;
-  //TODO: poner roles plurales
 }
 

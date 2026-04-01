@@ -36,6 +36,17 @@ export class RecommendationController
     return this.recommendationService.findAll(groupId, user);
   }
 
+  @Get(':id/:recommendationId/messages')
+  @Auth(ValidRoles.Admin, ValidRoles.User)
+  getMessages(
+    @Param('id', ParseUUIDPipe)groupId:string, 
+    @GetUser() user:User,
+    @Param('recommendationId') recommendationId: string, 
+  ) 
+  {
+    return this.recommendationService.getMessages(groupId, user, recommendationId);
+  }
+
   @Post(':id/activate-desactivate')
   @Auth(ValidRoles.Admin, ValidRoles.User)
   activateDesactivateRecommendation(

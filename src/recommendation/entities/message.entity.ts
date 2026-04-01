@@ -8,7 +8,7 @@ export class Message
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' }) // 👈 Añade esto
   createdAt: Date;
 
   @Column({
