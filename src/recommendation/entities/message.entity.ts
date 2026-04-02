@@ -21,7 +21,10 @@ export class Message
   @JoinColumn({name: 'user_id'})
   user: User;
 
-  @ManyToOne(() => Recommendation)
+  @ManyToOne(() => Recommendation,
+    {
+      onDelete: 'CASCADE'
+    })
   @JoinColumn({name: 'recommendation_id'})
   recommendation: Recommendation;
 

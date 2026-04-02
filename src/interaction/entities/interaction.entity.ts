@@ -45,11 +45,19 @@ export class Interaction
   })
   rating: number;
 
-  @ManyToOne(() => Member)
+  @ManyToOne(() => Member,
+    {
+      onDelete: 'CASCADE'
+    }
+  )
   @JoinColumn({name: 'member_id'})
   member: Member;
 
-  @ManyToOne(() => Recommendation)
+  @ManyToOne(() => Recommendation,
+    {
+      onDelete: 'CASCADE'
+    }
+  )
   @JoinColumn({name: 'recommendation_id'})
   recommendation: Recommendation;
 

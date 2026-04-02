@@ -3,7 +3,6 @@ import { Movie } from "src/movie/entities/movie.entity";
 import { User } from "src/user/entities/user.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { RecommendationState } from "../interfaces/recommendation-state";
-import { Member } from "src/member/entities/member.entity";
 import { Interaction } from "src/interaction/entities/interaction.entity";
 import { Message } from "./message.entity";
 
@@ -31,7 +30,11 @@ export class Recommendation
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Group)
+  @ManyToOne(() => Group,
+    {
+      onDelete: 'CASCADE'
+    }
+  )
   @JoinColumn({ name: 'group_id' })
   group: Group;
 

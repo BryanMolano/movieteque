@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {User} from '../user/entities/user.entity'
@@ -20,6 +20,7 @@ export class AuthService
   
   handleDBErrors(error)
   {
+    if(error instanceof BadRequestException) throw error
     console.log(error);
     throw new InternalServerErrorException('please check logs');
   }
@@ -28,6 +29,8 @@ export class AuthService
   {
     try
     {
+      const userWithEmail= await this.userRepository.findOneBy({email: createUserDto.email});
+      if(userWithEmail) throw new BadRequestException('an account with this email already exists');
       const{password, ...userData} = createUserDto;
       const user = this.userRepository.create({
         ...userData,
@@ -55,12 +58,12 @@ export class AuthService
 
     if(!user)
     {
-      throw new UnauthorizedException('credentials are not valid(email)');
+      throw new BadRequestException('credentials are not valid(email)');
     }
 
     if(!bcrypt.compareSync(password, user.password))
     {
-      throw new UnauthorizedException('credentials are not valid(password)');
+      throw new BadRequestException('credentials are not valid(password)');
     }
     return{
       ...user,

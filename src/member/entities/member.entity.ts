@@ -1,7 +1,8 @@
-import {Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {User} from "../../user/entities/user.entity";
 import { Group } from "src/group/entities/group.entity";
 import { ValidRoles } from "src/auth/interfaces/valid-roles.interface";
+import { Interaction } from "src/interaction/entities/interaction.entity";
 
 // export enum MemberRole
 // {
@@ -51,6 +52,9 @@ export class Member
   })
   isBanned: boolean;
 
-
+  @OneToMany(() => Interaction,
+    interaction => interaction.recommendation,
+    {cascade: true})
+  interactions?: Interaction[];
 
 }
