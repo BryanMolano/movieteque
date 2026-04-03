@@ -4,7 +4,8 @@ export class CreateRecommendationDto
   @IsInt()
   movieId: number;
 
-  @IsNotEmpty()
+  // @IsNotEmpty()
+  @IsOptional()
   @IsString()
   moviePoster: string;
 

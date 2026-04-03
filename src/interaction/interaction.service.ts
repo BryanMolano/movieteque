@@ -88,17 +88,29 @@ export class InteractionService
       this.handleDBExceptions(error);
     }
   }
-  async delete(deleteInteractionDto: {id: string})
+  async delete(deleteInteractionDto: {id: string}) 
   {
     try 
     {
-      const interaction = await this.interactionRepository.findOne({where:{id: deleteInteractionDto.id}})
+      const interaction = await this.interactionRepository.findOne({
+        where: { id: deleteInteractionDto.id },
+        relations: ['recommendation'] 
+      });
+
       if(!interaction) throw new ForbiddenException('Interaction not found');
-      const recommendation = await this.recommendationRepository.findOne({where:{id: interaction.recommendation.id}})
-      if(recommendation)
+
+      const recommendation = await this.recommendationRepository.findOne({
+        where: { id: interaction.recommendation.id }
+      });
+
+      if(recommendation) 
       {
-        if(recommendation.recommendationState === RecommendationState.Inactive) throw new ForbiddenException('Cannot delete an interaction from an inactive recommendation');
+        if(recommendation.recommendationState === RecommendationState.Inactive) 
+        {
+          throw new ForbiddenException('Cannot delete an interaction from an inactive recommendation');
+        }
       }
+
       await this.interactionRepository.remove(interaction);
     }
     catch (error) 

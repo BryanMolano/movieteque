@@ -12,7 +12,6 @@ export class UpdateUserDto
 
   @IsString()
   @IsOptional()
-  @MinLength(1)
   @MaxLength(400)
   description?: string;
 
