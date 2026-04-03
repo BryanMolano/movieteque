@@ -9,7 +9,12 @@ import { User } from "src/user/entities/user.entity";
 export interface AuthenticatedSocket extends Socket {
   user: User;
 }
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({ 
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true
+  } 
+})
 export class MessageWsGateway implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer() wss: Server;

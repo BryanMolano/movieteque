@@ -18,16 +18,15 @@ import { MessageWsModule } from './message-ws/message-ws.module';
   imports: [
     ConfigModule.forRoot({isGlobal:true}),
     TypeOrmModule.forRoot({
-      ssl: process.env.STAGE === 'prod',
+      ssl: process.env.STAGE === 'prod' ? { rejectUnauthorized: false } : false,
       type: 'postgres',
-      // timezone: 'Z',
       host: process.env.DB_HOST,
       port: +process.env.DB_PORT!,
       database: process.env.DB_NAME,
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: process.env.STAGE !== 'prod', 
     }),
     UserModule,
     AuthModule,
