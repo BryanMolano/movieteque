@@ -1,9 +1,9 @@
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike,Not,Repository } from 'typeorm';
-import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { ILike, Not, Repository } from 'typeorm';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService 
@@ -54,19 +54,20 @@ export class UserService
     }
   }
 
-  private handleDBExceptions(error) 
-  {
-    this.logger.error(error);
-    if(error instanceof ForbiddenException)
-    {
-      throw error
-    }
-    throw new InternalServerErrorException('Unexpected error occurred, check server logs');
-  }
   async update(user:User, updateUserDto : UpdateUserDto) 
   {
     try
     {
+      if(updateUserDto.username)
+      {
+        const userWithSameUsername = await this.userRepository.findOne({
+          where:{
+            username: updateUserDto.username,
+            id: Not(user.id) 
+          }
+        })
+        if(userWithSameUsername) throw new BadRequestException('username already exists')
+      }
       if(updateUserDto.oldPassword && updateUserDto.newPassword)
       {
         const newPasswordEncrypted = bcrypt.hashSync(updateUserDto.newPassword, 10);
@@ -77,6 +78,7 @@ export class UserService
         });
         if(!userWithPassword) throw new NotFoundException('user not found')
         if(!bcrypt.compareSync(updateUserDto.oldPassword, userWithPassword?.password)) throw new BadRequestException('the old password is not correct')
+
         else
         {
           const updatedUser = await this.userRepository.preload({id: user.id, 
@@ -124,4 +126,10 @@ export class UserService
     }
   }
 
+  private handleDBExceptions(error) 
+  {
+    if(error instanceof BadRequestException) throw error
+    if(error instanceof ForbiddenException) throw error
+    throw new InternalServerErrorException('Unexpected error occurred, check server logs');
+  }
 }

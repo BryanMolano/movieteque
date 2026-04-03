@@ -7,6 +7,7 @@ import { CreateInteractionDto } from './dto/create-interaction.dto';
 import { UpdateInteractionDto } from './dto/update-interaction.dto';
 import { Interaction} from './entities/interaction.entity';
 import { Member } from 'src/member/entities/member.entity';
+import { RecommendationState } from 'src/recommendation/interfaces/recommendation-state';
 
 @Injectable()
 export class InteractionService 
@@ -33,6 +34,7 @@ export class InteractionService
         }
       })
       if(!recommendation) throw new ForbiddenException('Recommendation not found in this group');
+      if(recommendation.recommendationState === RecommendationState.Inactive) throw new ForbiddenException('Cannot interact with an inactive recommendation');
 
       const member = await this.memberRepository.findOne({
         where:{
@@ -92,6 +94,11 @@ export class InteractionService
     {
       const interaction = await this.interactionRepository.findOne({where:{id: deleteInteractionDto.id}})
       if(!interaction) throw new ForbiddenException('Interaction not found');
+      const recommendation = await this.recommendationRepository.findOne({where:{id: interaction.recommendation.id}})
+      if(recommendation)
+      {
+        if(recommendation.recommendationState === RecommendationState.Inactive) throw new ForbiddenException('Cannot delete an interaction from an inactive recommendation');
+      }
       await this.interactionRepository.remove(interaction);
     }
     catch (error) 
@@ -128,6 +135,11 @@ export class InteractionService
       }
       )
       if(!interaction) throw new ForbiddenException('Interaction not found');
+      const recommendation = await this.recommendationRepository.findOne({where:{id: interaction.recommendation.id}})
+      if(recommendation)
+      {
+        if(recommendation.recommendationState === RecommendationState.Inactive) throw new ForbiddenException('Cannot update an interaction from an inactive recommendation');
+      }
       if(interaction.member.user.id !== user.id) throw new ForbiddenException('You can only update your own interactions');
       const updatedInteraction = Object.assign(
         interaction, updateInteractionDto

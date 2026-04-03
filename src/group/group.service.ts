@@ -335,6 +335,9 @@ export class GroupService
         if(AlreadyAMember.isBanned == true)
           throw new BadRequestException(`you are banned from ${group.name}`)
 
+        if(AlreadyAMember.role== ValidRoles.Invited)
+          throw new BadRequestException(`you are already invited from ${group.name} (check your invitations)`)
+
         throw new BadRequestException(`you are already part of ${group.name}`)
       }
       const newMember = this.memberRepository.create({
