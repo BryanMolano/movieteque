@@ -7,11 +7,16 @@ async function bootstrap()
   const app = await NestFactory.create(AppModule);
   
   // Seguridad CORS estricta
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'; // Ajusta el puerto local si es diferente
+  // const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'; // Ajusta el puerto local si es diferente
+  // app.enableCors({
+  //   origin: frontendUrl,
+  //   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  //   credentials: true,
+  // });
   app.enableCors({
-    origin: frontendUrl,
+    origin: ['https://movieteque.com', 'https://www.movieteque.com'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
+    credentials: true, 
   });
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({
