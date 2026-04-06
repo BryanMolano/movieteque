@@ -10,6 +10,8 @@ import { GroupService } from 'src/group/group.service';
 import { Message } from './entities/message.entity';
 import { ActivateDesactivateRecommendationDto } from './dto/activate-desactivate.dto';
 import { RecommendationState } from './interfaces/recommendation-state';
+import { Member } from 'src/member/entities/member.entity';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class RecommendationService 
@@ -20,9 +22,12 @@ export class RecommendationService
     private readonly recommendationRepository: Repository<Recommendation>,
     @InjectRepository(Message)
     private readonly messageRepository: Repository<Message>,
+    @InjectRepository(Member)
+    private readonly memberRepository: Repository<Member>,
     private readonly movieService : MovieService,
     private readonly groupService: GroupService,
     private readonly dataSource: DataSource,
+    private readonly mailService: MailService,
   )
   {
   }
@@ -54,7 +59,54 @@ export class RecommendationService
         })
         await queryRunner.manager.save(recommendationMessage);
       }
+
+      const members = await this.memberRepository.find({
+        where: {
+          group: {
+            id: group?.id,
+          }
+        },
+        relations: ['user'] 
+      });
+
       await queryRunner.commitTransaction();
+
+      const memberToNotify = members.filter(member => member.user.id !== user.id 
+        && user.isNotificationEnable 
+        && user.isEmailVerified);
+
+      const recommendationLink = `${process.env.FRONTEND_URL}/recommendation/${newRecommendation.id}`;
+
+      Promise.all(
+        memberToNotify.map(member => 
+        
+          this.mailService.sendHtmlEmail(
+            member.user.email,
+            `Movieteque - recomendacion en ${group?.name} de ${user.username}`,
+            'NUEVA RECOMENDACION',
+            `
+          <p>Hola <b>${member.user.username}</b>,</p>
+          <p>${user.username} acaba de recomendar una pelicula en ${group?.name}:</p>
+          
+          <div style="background-color: #0B2833; color: #CBD3D6; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; border: 2px solid #617B85; box-shadow: 4px 4px 0px #595149; margin: 25px 0;">
+            ${movie.name} 
+          </div>
+
+          <div style="text-align: center; margin-top: 35px; margin-bottom: 10px;">
+                <a href="${recommendationLink}" style="display: inline-block; background-color: #CBD3D6; color: #0B2833; text-decoration: none; font-weight: 900; font-family: monospace; font-size: 16px; padding: 12px 24px; border: 2px solid #CBD3D6; box-shadow: 4px 4px 0px #988775; letter-spacing: -0.5px;">
+                  [ VER RECOMENDACIÓN ]
+                </a>
+          </div>
+
+          <p>Si prefieres no recibir notificaciones, puedes desactivarlas en tu perfil de MOVIETEQUE.</p>
+        ` 
+          )
+        )
+      ).catch((error) => 
+      {
+        this.logger.error('error enviando correos de RECOMENDACION', error);
+      })
+      
       return newRecommendation
     }
     catch(error)

@@ -7,6 +7,7 @@ import { RecommendationModule } from 'src/recommendation/recommendation.module';
 import { MemberModule } from 'src/member/member.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { UserModule } from 'src/user/user.module';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   controllers: [InteractionController],
@@ -15,6 +16,7 @@ import { UserModule } from 'src/user/user.module';
     MemberModule,
     UserModule,
     AuthModule,
+    MailModule,
     TypeOrmModule.forFeature([Interaction])],
   exports: [TypeOrmModule]
 })

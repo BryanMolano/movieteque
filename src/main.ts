@@ -12,11 +12,6 @@ async function bootstrap()
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
-  // app.enableCors({
-  //   origin: ['https://movieteque.com', 'https://www.movieteque.com'],
-  //   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  //   credentials: true, 
-  // });
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,

@@ -9,6 +9,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { MovieModule } from 'src/movie/movie.module';
 import { GroupModule } from 'src/group/group.module';
 import { MemberModule } from 'src/member/member.module';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   controllers: [RecommendationController],
@@ -19,6 +20,7 @@ import { MemberModule } from 'src/member/member.module';
     GroupModule,
     AuthModule,
     MemberModule,
+    MailModule
   ],
   exports: [TypeOrmModule, RecommendationService]
 })

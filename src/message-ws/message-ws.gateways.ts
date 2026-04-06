@@ -15,12 +15,6 @@ export interface AuthenticatedSocket extends Socket {
     credentials: true
   } 
 })
-// @WebSocketGateway({ 
-//   cors: {
-//     origin: ['https://movieteque.com', 'https://www.movieteque.com'],
-//     credentials: true
-//   } 
-// })
 export class MessageWsGateway implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer() wss: Server;

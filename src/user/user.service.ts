@@ -1,9 +1,12 @@
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { ILike, Not, Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { MailService } from 'src/mail/mail.service';
+import { VerificationEmailDto } from './dto/verification-email.dto';
 
 @Injectable()
 export class UserService 
@@ -11,7 +14,8 @@ export class UserService
   private readonly logger = new Logger('GroupService');
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>
+    private readonly userRepository: Repository<User>,
+    private readonly mailService: MailService,
   )
   {
   }
@@ -131,5 +135,93 @@ export class UserService
     if(error instanceof BadRequestException) throw error
     if(error instanceof ForbiddenException) throw error
     throw new InternalServerErrorException('Unexpected error occurred, check server logs');
+  }
+
+
+  async sendVerificationEmail(user: User)
+  {
+    try 
+    {
+      const verificationCode= crypto.randomInt(100000, 999999).toString();
+      const hashedToken= bcrypt.hashSync(verificationCode, 10);
+      user.verificationCode= hashedToken;
+      await this.userRepository.save(user);
+      // await this.mailService.sendPlainTextEmail(
+      //   user.email,
+      //   `MOVIETEQUE - Email verification code for: ${user.username}`,
+      //   `Your verification code is: ${verificationCode}`
+      // )
+      // await this.mailService.sendHtmlEmail(
+      //   user.email,
+      //   'Movieteque - password recuperation token',
+      //   ' PASSWORD RECUPERATION',
+      //   `
+      //     <p>Hola <b>${user.username}</b>,</p>
+      //     <p>Tu código de seguridad para verificar tu cuenta:</p>
+      //     <div style="background-color: #222; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; border: 1px solid #555; margin: 20px 0;">
+      //       ${verificationCode}
+      //     </div>
+      //     <p>Si no solicitaste esto, puedes ignorar este mensaje.</p>
+      //   ` 
+      // )
+      await this.mailService.sendHtmlEmail(
+        user.email,
+        'Movieteque - codigo de verificacion',
+        'CODIGO DE VERIFICACION',
+        `
+          <p>Hola <b>${user.username}</b>,</p>
+          <p>Tu código de seguridad para verificar tu cuenta es:</p>
+          
+          <div style="background-color: #0B2833; color: #CBD3D6; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; border: 2px solid #617B85; box-shadow: 4px 4px 0px #595149; margin: 25px 0;">
+            ${verificationCode}
+          </div>
+          
+          <p>Si no solicitaste esto, puedes ignorar este mensaje.</p>
+        ` 
+      )
+    }
+    catch (error) 
+    {
+      this.handleDBExceptions(error);
+    }
+  }
+  async verificationEmail(verificationEmailDto: VerificationEmailDto, user: User)
+  {
+    try 
+    {
+      const {verificationCode}= verificationEmailDto;
+      if(!user) throw new BadRequestException('there is no user');
+      if(!user.verificationCode) throw new BadRequestException('there is no verification code for this user');
+      if(!bcrypt.compareSync( verificationCode, user.verificationCode))
+      {
+        throw new BadRequestException('the verification code is incorrect');
+      }
+      user.isEmailVerified = true;
+      user.verificationCode= null;
+      await this.userRepository.save(user);
+      return user;
+    }
+    catch (error) 
+    {
+      this.handleDBExceptions(error);
+    }
+  }
+
+  async activateDesactivateNotifications ( user: User )
+  {
+    try 
+    {
+      const userFound = await this.userRepository.findOne({
+        where:{id: user.id}
+      })
+      if(!userFound) throw new BadRequestException('there is no user');
+      userFound.isNotificationEnable= !userFound.isNotificationEnable;
+      await this.userRepository.save(userFound);
+      return user;
+    }
+    catch (error) 
+    {
+      this.handleDBExceptions(error);
+    }
   }
 }

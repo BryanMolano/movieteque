@@ -55,4 +55,28 @@ export class User
 
   @UpdateDateColumn({type:'timestamptz'})
   updatedAt: Date;
+
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
+  resetPasswordToken?: string | null;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  isEmailVerified: boolean;
+
+  @Column({
+    type: 'boolean',
+    default: true,
+  })
+  isNotificationEnable: boolean;
+
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
+  verificationCode?: string | null;
 }

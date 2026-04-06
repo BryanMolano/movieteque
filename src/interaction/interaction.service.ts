@@ -8,6 +8,8 @@ import { UpdateInteractionDto } from './dto/update-interaction.dto';
 import { Interaction} from './entities/interaction.entity';
 import { Member } from 'src/member/entities/member.entity';
 import { RecommendationState } from 'src/recommendation/interfaces/recommendation-state';
+import { group } from 'console';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class InteractionService 
@@ -20,7 +22,8 @@ export class InteractionService
     @InjectRepository(Interaction)
     private readonly interactionRepository: Repository<Interaction>,
     @InjectRepository(Member)
-    private readonly memberRepository: Repository<Member>
+    private readonly memberRepository: Repository<Member>,
+    private readonly mailService: MailService,
   ) 
   {}
   async create(createInteractionDto: CreateInteractionDto, groupId:string, user:User) 
@@ -30,8 +33,8 @@ export class InteractionService
     {
       const {response, rating, memberId, recommendationId, state, type} = createInteractionDto;
       const recommendation = await this.recommendationRepository.findOne({where:
-        {id: recommendationId, group:{id: groupId}
-        }
+        {id: recommendationId, group:{id: groupId}, 
+        }, relations: {user: true, group:true, movie:true}
       })
       if(!recommendation) throw new ForbiddenException('Recommendation not found in this group');
       if(recommendation.recommendationState === RecommendationState.Inactive) throw new ForbiddenException('Cannot interact with an inactive recommendation');
@@ -81,6 +84,42 @@ export class InteractionService
 
       })
       await this.interactionRepository.save(interaction);
+
+
+      const shouldNotify = recommendation.user.isEmailVerified && 
+                           recommendation.user.isNotificationEnable && 
+                           recommendation.user.id !== user.id;
+
+      if(shouldNotify)
+      {
+        const recommendationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/recommendation/${recommendation.id}`;
+
+        void this.mailService.sendHtmlEmail(
+          recommendation.user.email,
+          `Movieteque - Nueva interacción en tu recomendación de ${recommendation.movie.name}`,
+          'NUEVA INTERACCIÓN',
+          `
+            <p>Hola <b>${recommendation.user.username}</b>,</p>
+            <p><b>${user.username}</b> acaba de interactuar con tu recomendación en el grupo <b>${recommendation.group.name}</b>:</p>
+            
+            <div style="background-color: #0B2833; color: #CBD3D6; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; border: 2px solid #617B85; box-shadow: 4px 4px 0px #595149; margin: 25px 0;">
+              ${recommendation.movie.name}
+            </div>
+
+            <div style="text-align: center; margin-top: 35px; margin-bottom: 10px;">
+                <a href="${recommendationLink}" style="display: inline-block; background-color: #CBD3D6; color: #0B2833; text-decoration: none; font-weight: 900; font-family: monospace; font-size: 16px; padding: 12px 24px; border: 2px solid #CBD3D6; box-shadow: 4px 4px 0px #988775; letter-spacing: -0.5px;">
+                  [ VER INTERACCIÓN ]
+                </a>
+            </div>
+
+            <p style="font-size: 12px; color: #617B85;">Si prefieres no recibir notificaciones, puedes desactivarlas en tu perfil de MOVIETEQUE.</p>
+          ` 
+        ).catch((error) => 
+        {
+          this.logger.error('Error enviando correo de INTERACCIÓN', error);
+        });
+      }
+       
       return interaction;
     }
     catch (error) 

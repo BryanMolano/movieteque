@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Patch, Param, UseGuards, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, UseGuards, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 // import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -7,6 +7,7 @@ import { User } from './entities/user.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileService } from 'src/file/file.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { VerificationEmailDto } from './dto/verification-email.dto';
 
 @Controller('user')
 export class UserController 
@@ -29,6 +30,7 @@ export class UserController
   {
     return this.userService.findOne(term);
   }
+
   @Get(':id')
   @UseGuards(AuthGuard('jwt'))
   findOneId(@Param('id') id: string) 
@@ -70,9 +72,31 @@ export class UserController
 
     }
     updateData.imgUrl = currentImage;
-
     return this.userService.update(user, updateData)
-
   }
 
+  @Post('verify-email')
+  @UseGuards(AuthGuard('jwt'))
+  verifyEmail(@GetUser() user: User)
+  {
+    return this.userService.sendVerificationEmail(user);
+  }
+  
+  @Post('verify-email-code')
+  @UseGuards(AuthGuard('jwt'))
+  verifyEmailCode(@Body() verificationEmailDto: VerificationEmailDto,
+    @GetUser() user: User
+  )
+  {
+    return this.userService.verificationEmail(verificationEmailDto, user);
+  }
+
+  @Post('activate-desactivate-notifications')
+  @UseGuards(AuthGuard('jwt'))
+  activateDesactivateNotifications(
+    @GetUser() user: User
+  )
+  {
+    return this.userService.activateDesactivateNotifications(user);
+  }
 }

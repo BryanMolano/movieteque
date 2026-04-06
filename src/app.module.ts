@@ -13,6 +13,7 @@ import { InteractionModule } from './interaction/interaction.module';
 import { FileModule } from './file/file.module';
 import { FileService } from './file/file.service';
 import { MessageWsModule } from './message-ws/message-ws.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { MessageWsModule } from './message-ws/message-ws.module';
     InteractionModule,
     FileModule,
     MessageWsModule,
+    MailModule,
 
 
   ],
