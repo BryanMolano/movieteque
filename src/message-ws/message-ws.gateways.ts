@@ -5,13 +5,14 @@ import { NewMessageDto } from "./dtos/new-message.dto";
 import { MessageWsService } from "./message-ws.service";
 import { Server, Socket } from 'socket.io';
 import { User } from "src/user/entities/user.entity";
+import { getAllowedOrigins } from "src/common/cors-origins";
 
 export interface AuthenticatedSocket extends Socket {
   user: User;
 }
 @WebSocketGateway({ 
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: getAllowedOrigins(),
     credentials: true
   } 
 })

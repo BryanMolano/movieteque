@@ -14,12 +14,16 @@ import { FileModule } from './file/file.module';
 import { FileService } from './file/file.service';
 import { MessageWsModule } from './message-ws/message-ws.module';
 import { MailModule } from './mail/mail.module';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({isGlobal:true}),
     TypeOrmModule.forRoot({
-      ssl: process.env.DB_HOST !== 'localhost' ? { rejectUnauthorized: false } : false,
+      // ssl: process.env.DB_HOST !== 'localhost' ? { rejectUnauthorized: false } : false,
+      ssl: (process.env.DB_SSL ?? String(process.env.DB_HOST !== 'localhost')) === 'true'
+        ? { rejectUnauthorized: false }
+        : false,
       type: 'postgres',
       host: process.env.DB_HOST,
       port: +process.env.DB_PORT!,
@@ -27,7 +31,7 @@ import { MailModule } from './mail/mail.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       autoLoadEntities: true,
-      synchronize: process.env.STAGE !== 'prod', 
+      synchronize: process.env.STAGE  === 'dev', 
     }),
     UserModule,
     AuthModule,
@@ -42,7 +46,7 @@ import { MailModule } from './mail/mail.module';
 
 
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [AppService, FileService],
 })
 export class AppModule
