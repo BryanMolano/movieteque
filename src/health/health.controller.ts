@@ -12,7 +12,7 @@ export class HealthController
   @Get()
   live()
   {
-    throw new ServiceUnavailableException({ status: 'fallo-de-prueba' });
+    return { status: 'ok' };
   }
 
   // Readiness: además, la base responde. Úsalo a mano o en despliegues.
