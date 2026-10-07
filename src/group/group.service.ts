@@ -82,7 +82,7 @@ export class GroupService
     try
     {
 
-      const {limit = 10, offset = 0} = paginationDto;
+      const {limit = 50, offset = 0} = paginationDto;
       const query = this.groupRepository.createQueryBuilder('group')
         .take(limit)
         .skip(offset)
